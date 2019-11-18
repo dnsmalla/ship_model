@@ -1,0 +1,3 @@
+#ploting infromation
+line plot left side theta=180
+line plot down side theta=-90
