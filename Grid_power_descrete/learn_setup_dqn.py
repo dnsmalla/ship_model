@@ -18,7 +18,7 @@ class Learn_set():
         """
         self.net=net
         self.reset=reset
-        self.net.avg_grid=self.net.ext_grid["max_p_mw"]*1000/len([name for names in group for name in names])
+        self.total_agents=len([name for names in group for name in names])
         env=Environment()
         self.actions=["ON","OFF"]
         assert len(self.net.res_pv)==len(self.net.pv),"learning setup need res setup! import and setup data control "
@@ -105,8 +105,7 @@ class Learn_set():
         data.append(self.load_data_set(hour,agent))
         data.append(self.storage_data_set(hour,agent))
         #avg_grid and time
-
-        data.append(self.net.avg_grid[0]*times)
+        data.append(self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents)
         data.append((env.hour+1)/24)
         data=np.reshape(data,[1,len(data)])
         data[np.isnan(data)] = 0
@@ -135,7 +134,7 @@ class Learn_set():
             return reward and next state
         """
         agent_len=len(self.agents[agents]["name"])
-        reward=self.cal_reward(agent_len,agents,agent,env)
+        reward=self.cal_greward(agent_len,agents,agent,env)
         next_state=self.cal_next_state(agent_len,agent,env)
         return next_state,reward
 
@@ -146,30 +145,35 @@ class Learn_set():
         data.append(self.load_data_set(hour,agent))
         data.append(self.storage_data_set(hour,agent))
         #grid_avg and time
-        data.append(self.net.avg_grid[0]*times)
+        data.append(self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents)
         data.append((env.next_hour+1)/24)
         data=np.reshape(data,[1,len(data)])
         data[np.isnan(data)] = 0
         return data
 
 
-    def cal_reward(self,times,agents,agent,env):
+    def cal_ireward(self,times,agents,agent,env):
         """to return the reward"""
         #for individual reward
         hour=env.hour
-        usable_igrid=self.net.avg_grid[0]
+        usable_igrid=self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents
         used_igrid=self.grid_sell_call(agent,hour)
         ireward=(usable_igrid+1)/(used_igrid+1)
-        #for gloabal reward
-        self.agents[agents]["grid"]+=used_igrid
-        if self.agents[agents]["grid"]>(usable_igrid*times):
-            env.done=True
-            greward=-10
-        else:
-            greward=0.01
-        reward=ireward+greward
 
-        return reward
+        return ireward
+    
+    def cal_greward(self,times,agents,agent,env):
+        """to return the reward"""
+        #for individual reward
+        hour=env.hour
+        usable_grid=self.net.res_ext_grid.loc['Grid'][hour]
+        used_grid=self.grid_sell_all_call(hour)
+        if used_grid>usable_grid:
+            env.done=True
+            g_reward=(usable_grid+1)/(used_grid+1)
+        else:
+            g_reward=(usable_grid+1)/(used_grid+1)
+        return g_reward
 
     def implement_action(self,agent,env,action):
         """implement action
@@ -193,7 +197,6 @@ class Learn_set():
             self.set_res_ext_grid_2st(env,st_4grid,agent)
             self.set_res_storage_2ld(env,st_2ld,agent)
             self.set_storage(env,agent)
-
 
     def pv_data_set(self,hour,name):
         """fro group data return
@@ -228,6 +231,17 @@ class Learn_set():
         return specific time step all pv data
         """
         return self.net.res_pv_production[hour][:]
+    
+    def grid_sell_all_call(self,hour):
+        """fro group data return
+        each time step [hour]
+        group member [name]
+        return specific time step all pv data
+        """
+        Hour = "Hour-"+str(hour) 
+        load_sell=self.net.res_ext_grid_2ld[Hour][:]
+        st_sell=self.net.res_ext_grid_2st[Hour][:]
+        return (np.sum(load_sell)+np.sum(st_sell))
 
     def grid_sell_call(self,name,hour):
         """fro group data return

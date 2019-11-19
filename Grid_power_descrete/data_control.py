@@ -2,7 +2,7 @@ import os
 import copy
 import pandas as pd 
 import numpy as np 
-from excel_read_write import Load_gen,PV_gen,Storage_gen
+from excel_read_write import Load_gen,PV_gen,Storage_gen,Grid_gen
 data_file='model_data.xlsx'
 
 class Data_intialize():
@@ -41,19 +41,25 @@ class Data_intialize():
             soc_data=soc._datas(soc_need)
             self.net.res_storage_SOC["Hour-0"]=soc_data.T
             self.net.res_storage_N_SOC["Hour-0"][:]=self.net.res_storage_SOC["Hour-0"]
+            # load grid data
+            grid_need=list(self.net.ext_grid["name"])
+            grid=Grid_gen()
+            grid_data=grid._datas(grid_need)
+            self.net.res_ext_grid=grid_data.T
 
         else:
             load_datas= pd.read_excel(self.file,'load')
             pv_datas= pd.read_excel(self.file,'pv')
             #storage_datas= pd.read_excel(self.file,'battery',index_col=0)
             storage_datas= pd.read_excel(self.file,'battery')
+            grid_datas= pd.read_excel(self.file,'grid')
             assert len(pv_datas)==24,"data canot feed to pv production"
             self.net.res_pv_production=pv_datas.T
             assert len(load_datas)==24,"data canot feed to load production"
             self.net.res_load_data=load_datas.T
             #assert len(self.net.res_storage_SOC)==len(storage_datas.values.copy()[0]),"storage data does note match with storage len"
             self.net.res_storage_SOC["Hour-0"][:]=copy.deepcopy(storage_datas.values.T[2])
-            
+            self.net.res_ext_grid=grid_data.T
 
     def get_elements_to_empty(self):
         return ["ext_grid_buy", "ext_grid_2st","ext_grid_2ld","ext_grid_balance","pv_2st","pv_2ld","pv_2sell","storage_charge","storage_discharge",

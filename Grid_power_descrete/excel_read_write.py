@@ -152,38 +152,6 @@ class PV_gen(object):
                     load_data=load_data.join(load_datas)
                     
         return load_data
-    
-class battery_gen(object):
-
-    def __init__(self,low_w=4000,high_w=5000,dt_time=1):
-        """ low_w is lower point of load power 
-            high_w is maximum point of load power
-            dt_time is discretization of 24hour in to that form
-        """
-        self.low_w=low_w
-        self.high_w=high_w
-        self.dt_time=dt_time
-
-    def _data(self,_head):
-        """create data for load"""
-        data={}
-        battery_soc=np.random.randint(self.low_w,self.high_w,size=self.dt_time)
-        data[_head]=battery_soc
-        return pd.DataFrame(data,columns= [_head])
-    
-    def _datas(self,cols):
-        bat_cols=[]
-        for col in range(len(cols)):
-            if len(bat_cols)==0:
-                bat_data=self._data(cols[col]) 
-                bat_cols.append(bat_data.columns[0])
-            else:
-                bat_datas=self._data(cols[col]) 
-                if bat_datas.columns[0] not in bat_cols:
-                    bat_cols.append(bat_datas.columns[0])
-                    bat_data=bat_data.join(bat_datas)
-                    
-        return bat_data
 
 class Storage_gen(object):
 
@@ -216,3 +184,46 @@ class Storage_gen(object):
                     sto_data=sto_data.join(sto_datas)
                     
         return sto_data
+
+class Grid_gen(object):
+
+    def __init__(self,pw_type=3,low_w=18000,high_w=25000,dt_time=24):
+        """ low_w is lower point of load power 
+            high_w is maximum point of load power
+            dt_time is discretization of 24hour in to that form
+        """
+        self.low_w=low_w
+        self.pw_type=pw_type
+        self.high_w=high_w
+        self.dt_time=dt_time
+
+    def _data(self,_head):
+        """create data for load"""
+        data={}
+        grid=self._copy_data()
+        data[_head]=grid
+        return pd.DataFrame(data,columns= [_head])
+    
+    def _copy_data(self):
+        data=np.random.randint(self.low_w,self.high_w,size=self.pw_type)
+        data.sort()
+        datas=[]
+        for i in range(self.pw_type):
+            re_data=list([data[i]]*(self.dt_time//self.pw_type))
+            for j in range(len(re_data)):
+                datas.append(re_data[j])
+        return datas
+              
+    def _datas(self,cols):
+        grid_cols=[]
+        for col in range(len(cols)):
+            if len(grid_cols)==0:
+                grid_data=self._data(cols[col]) 
+                grid_cols.append(grid_data.columns[0])
+            else:
+                grid_datas=self._data(cols[col]) 
+                if grid_datas.columns[0] not in grid_cols:
+                    grid_cols.append(grid_datas.columns[0])
+                    grid_data=grid_data.join(grid_datas)
+                    
+        return grid_data
