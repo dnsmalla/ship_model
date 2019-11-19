@@ -16,6 +16,7 @@ class Learn_set():
             call data_setup for getting data for learning
         """
         self.net=net
+        self.reward={}
         self.reset=reset
         self.net.avg_grid=self.net.ext_grid["max_p_mw"]*1000/len([name for names in group for name in names])
         env=Environment()
@@ -31,7 +32,7 @@ class Learn_set():
             self.agents[name]["name"]=group[l]
             input_len=5*len(group[l])
             action_len=len(group[l])
-            self.agents[name]["Policy"]=DDPGAgents.Policy(input_len,action_len,1)
+            self.agents[name]["Policy"]=DDPGAgents.Policy(input_len,action_len,g_name)
         self.run(env)
 
     def run(self,env,train=True):
@@ -41,25 +42,46 @@ class Learn_set():
         """
         start=time.time()
         env.train = True
-        env.run_steps =100000
+        env.run_steps =50000
         env.hour_max = 24
         for k in range(env.run_steps):
-
+            env.step=k
             for j in range(24):
                 env.hour = j
                 if j + 1 == env.hour_max:
                     env.next_hour = 0
                 else:
                     env.next_hour = j + 1
-
                 for i in range(len(self.agents)):
                     agent="agent"+str(i)
                     input,action=self.get_action(agent,env)
                     next_s,reward=self.get_renex(agent,env)
                     self.agents[agent]["Policy"].learn_act(input[0],reward,next_s[0])
+                    if k+1==env.run_steps and j+1==24:
+                        policy.save_model()
+                    if j+1==24:
+                        print(" steps",k,"  agent ",agent," reward ",reward)
+            
+                if env.done:
+                    print("terminated at",j)
+                    break
+            self.reward[str(k)]=j
             self.reset(self.net)
             now=time.time()
             print("time taken",now-start)
+        self.save_dict_to_file(self.reward)
+        #np.savetxt("group_reward_ddpg.csv",self.reward)
+
+    def save_dict_to_file(self,dic):
+        f = open('dictddpg.txt','w')
+        f.write(str(dic))
+        f.close()
+
+    def load_dict_from_file(self):
+        f = open('dictddpg.txt','r')
+        data=f.read()
+        f.close()
+        return eval(data)
 
     def set_input(self,agent,env):
         """for hourly data set 
@@ -84,14 +106,12 @@ class Learn_set():
         data[np.isnan(data)] = 0
         return data
 
-
-    #Todo
     def get_action(self,agent,env):
         """implement the data to get the action
         group data to get group action
         """
         data=self.set_input(agent,env)
-        action=self.agents[agent]["Policy"].choose_action(data)
+        action=self.agents[agent]["Policy"].choose_action(data,env.step)
         #for random action set
         len_act=len(action)
         #action=np.random.choice([-1,1],size=len_act)
@@ -129,8 +149,21 @@ class Learn_set():
 
 
     def cal_reward(self,agent,env):
-        """to return the reward"""
-        return np.random.rand()
+        """to return the reward
+            agent =group
+        """
+        hour=env.hour
+        group_len=len(self.agents[agent]["name"])
+        usable_grid=self.net.avg_grid[0]*group_len
+        used_grid=self.grid_sell_call(self.agents[agent]["name"],hour)
+        ireward=(usable_grid+1)/(used_grid+1)
+        if usable_grid<used_grid:
+            env.done=True
+            greward=-10
+        else:
+            greward=0.01
+        reward=ireward+greward
+        return reward
 
     def implement_action(self,agent,env,actions):
         """implement action
@@ -175,6 +208,18 @@ class Learn_set():
         return specific time step group members load data
         """
         return self.net.res_load_data.loc[name][hour]
+
+    def grid_sell_call(self,name,hour):
+        """fro group data return
+        each time step [hour]
+        group member [name]
+        return specific time step all pv data
+        """
+        Hour = "Hour-"+str(hour) 
+        load_sell=self.net.res_ext_grid_2ld.loc[name][Hour]
+        st_sell=self.net.res_ext_grid_2st.loc[name][Hour]
+
+        return (np.sum(load_sell)+np.sum(st_sell))
     
     def storage_data_set(self,hour,name):
         """fro group data return
@@ -229,7 +274,7 @@ class Learn_set():
         Hour="Hour-"+str(env.hour) 
         self.net.res_pv_2sell.at[name,Hour]=data
         self.net.res_ext_grid_buy.at[name,Hour]=data
-    #todo
+
     def set_res_ext_grid_2ld(self,env, data,name):
         """to set the result to pv_res which set data to pv to load and load charge """
         Hour="Hour-"+str(env.hour) 
@@ -243,7 +288,7 @@ class Learn_set():
         n_Hour="Hour-"+str(env.next_hour) 
         self.net.res_storage.loc[name]['grid_charge']=data
         self.net.res_ext_grid_2st.at[name,Hour]=data
-    #todo
+
 
     def set_res_storage_2ld(self, env, data,name):
         """to set the result to pv_res which set data to pv to load and load charge """

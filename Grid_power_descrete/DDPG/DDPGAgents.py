@@ -5,6 +5,7 @@ import numpy as np
 from collections import deque
 from DDPG.actor import Actor
 from DDPG.critic import Critic
+from DDPG.ounoise import OrnsteinUhlenbeckProcess
 
 MAX_EPISODES = 200
 MAX_EP_STEPS = 200
@@ -35,7 +36,7 @@ class Memory(object):
         return self.data[indices, :]
 
 class Policy:
-    def __init__(self,state_dim,action_dim,action_bound=1):
+    def __init__(self,state_dim,action_dim,name,action_bound=1):
         tf.compat.v1.reset_default_graph()
         self.sess=tf.Session()
         self.state_dim=state_dim
@@ -46,13 +47,13 @@ class Policy:
         self.sess.run(tf.compat.v1.global_variables_initializer())
         self.M = Memory(MEMORY_CAPACITY, dims=2 * state_dim + action_dim + 1)
         self.saver=tf.compat.v1.train.Saver()
+        self.noise=OrnsteinUhlenbeckProcess(size=self.action_dim)
 
-    def choose_action(self,state):
-        # tf.reset_default_graph()
-        # state=np.reshape(state,[1,5])
-        self.action = self.actor.choose_action(state)
-        noise=0
-        return self.action+noise
+    def choose_action(self,state,step):
+        """ action is  action + noise"""
+        self.action = self.actor.choose_action(state)+self.noise.generate(step)
+
+        return self.action
 
 
     def learn_act(self,state,reward,next_state):

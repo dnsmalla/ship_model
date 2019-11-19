@@ -24,6 +24,7 @@ class Learn_set():
         assert len(self.net.res_pv)==len(self.net.pv),"learning setup need res setup! import and setup data control "
         assert isinstance(group, list),"groput need to be list"
         self.agents={}
+        self.reward={}
         for l in range(len(group)):
             name="agent"+str(l)
             g_name="group"+str(l)
@@ -45,7 +46,7 @@ class Learn_set():
         """
         start=time.time()
         env.train = True
-        env.run_steps =20000
+        env.run_steps =50000
         env.hour_max = 24
         for k in range(env.run_steps):
 
@@ -75,9 +76,23 @@ class Learn_set():
                 if env.done:
                     print("terminated at",j)
                     break
+            self.reward[str(k)]=j
             self.reset(self.net)
             now=time.time()
             print("time taken",now-start)
+        self.save_dict_to_file(self.reward)
+ 
+
+    def save_dict_to_file(self,dic):
+        f = open('dictddqn.txt','w')
+        f.write(str(dic))
+        f.close()
+
+    def load_dict_from_file(self):
+        f = open('dictddqn.txt','r')
+        data=f.read()
+        f.close()
+        return eval(data)
 
     def set_input(self,times,agent,env):
         """for hourly data set 
