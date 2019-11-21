@@ -59,7 +59,7 @@ class Excel(object):
 
 class Load_gen(object):
 
-    def __init__(self,low_w=500,high_w=1200,dt_time=24):
+    def __init__(self,low_w=500,high_w=1300,dt_time=24):
         """ low_w is lower point of load power 
             high_w is maximum point of load power
             dt_time is discretization of 24hour in to that form

@@ -101,12 +101,12 @@ class Learn_set():
         """
         data=[]
         hour=env.hour
-        data.append(self.pv_data_set(hour,agent))
-        data.append(self.load_data_set(hour,agent))
-        data.append(self.storage_data_set(hour,agent))
+        data.append(self.pv_data_set(hour,agent)/1000)
+        data.append(self.load_data_set(hour,agent)/1000)
+        data.append(self.storage_data_set(hour,agent)/1000)
         #avg_grid and time
-        data.append(self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents)
-        data.append((env.hour+1)/24)
+        data.append(self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)
+        data.append((env.hour))
         data=np.reshape(data,[1,len(data)])
         data[np.isnan(data)] = 0
         return data
@@ -141,12 +141,12 @@ class Learn_set():
     def cal_next_state(self,times,agent,env):
         hour=env.next_hour
         data=[]
-        data.append(self.pv_data_set(hour,agent))
-        data.append(self.load_data_set(hour,agent))
-        data.append(self.storage_data_set(hour,agent))
+        data.append(self.pv_data_set(hour,agent)/1000)
+        data.append(self.load_data_set(hour,agent)/1000)
+        data.append(self.storage_data_set(hour,agent)/1000)
         #grid_avg and time
-        data.append(self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents)
-        data.append((env.next_hour+1)/24)
+        data.append(self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)
+        data.append((env.next_hour))
         data=np.reshape(data,[1,len(data)])
         data[np.isnan(data)] = 0
         return data
@@ -170,9 +170,9 @@ class Learn_set():
         used_grid=self.grid_sell_all_call(hour)
         if used_grid>usable_grid:
             env.done=True
-            g_reward=(usable_grid+1)/(used_grid+1)
+            g_reward=-10
         else:
-            g_reward=(usable_grid+1)/(used_grid+1)
+            g_reward=0.1
         return g_reward
 
     def implement_action(self,agent,env,action):

@@ -18,7 +18,8 @@ class Learn_set():
         self.net=net
         self.reward={}
         self.reset=reset
-        self.net.avg_grid=self.net.ext_grid["max_p_mw"]*1000/len([name for names in group for name in names])
+        self.total_agents=len([name for names in group for name in names])
+        self.total_groups=len([names for names in group] )
         env=Environment()
         self.actions=["ON","OFF"]
         assert len(self.net.res_pv)==len(self.net.pv),"learning setup need res setup! import and setup data control "
@@ -46,6 +47,7 @@ class Learn_set():
         env.hour_max = 24
         for k in range(env.run_steps):
             env.step=k
+            env.done=False
             for j in range(24):
                 env.hour = j
                 if j + 1 == env.hour_max:
@@ -61,16 +63,14 @@ class Learn_set():
                         policy.save_model()
                     if j+1==24:
                         print(" steps",k,"  agent ",agent," reward ",reward)
-            
                 if env.done:
                     print("terminated at",j)
                     break
             self.reward[str(k)]=j
             self.reset(self.net)
             now=time.time()
-            print("time taken",now-start)
+            #print("time taken",now-start)
         self.save_dict_to_file(self.reward)
-        #np.savetxt("group_reward_ddpg.csv",self.reward)
 
     def save_dict_to_file(self,dic):
         f = open('dictddpg.txt','w')
@@ -93,13 +93,13 @@ class Learn_set():
         hour=env.hour
         assert agent in list(self.agents.keys())," the agent is not containt in the agents list"
         names=self.agents[agent]["name"]
-        data.append(list(self.pv_data_set(hour,names)))
-        data.append(list(self.load_data_set(hour,names)))
-        data.append(list(self.storage_data_set(hour,names)))
+        data.append(list(self.pv_data_set(hour,names)/1000))
+        data.append(list(self.load_data_set(hour,names)/1000))
+        data.append(list(self.storage_data_set(hour,names)/1000))
         #avg_grid and time
 
-        data.append(list(self.get_data_copy(len(names),self.net.avg_grid[0])))
-        data.append(list(self.get_data_copy(len(names),(env.hour+1)/24)))
+        data.append(list(self.get_data_copy(len(names),self.net.res_ext_grid.loc['Grid'][hour]/self.total_groups/1000)))
+        data.append(list(self.get_data_copy(len(names),(env.hour))))
        
         data=list(itertools.chain(*data))
         data=np.reshape(data,[1,len(data)])
@@ -112,9 +112,6 @@ class Learn_set():
         """
         data=self.set_input(agent,env)
         action=self.agents[agent]["Policy"].choose_action(data,env.step)
-        #for random action set
-        len_act=len(action)
-        #action=np.random.choice([-1,1],size=len_act)
         self.implement_action(agent,env,action)
         return data,action
 
@@ -127,7 +124,7 @@ class Learn_set():
         """input as a agent which cotaint group name
             return reward and next state
         """
-        reward=self.cal_reward(agent,env)
+        reward=self.cal_greward(agent,env)
         next_state=self.cal_next_state(agent,env)
         return next_state,reward
 
@@ -136,34 +133,43 @@ class Learn_set():
         data=[]
         assert agent in list(self.agents.keys())," the agent is not containt in the agents list"
         names=self.agents[agent]["name"]
-        data.append(list(self.pv_data_set(hour,names)))
-        data.append(list(self.load_data_set(hour,names)))
-        data.append(list(self.storage_data_set(hour,names)))
+        data.append(list(self.pv_data_set(hour,names)/1000))
+        data.append(list(self.load_data_set(hour,names)/1000))
+        data.append(list(self.storage_data_set(hour,names)/1000))
         #grid_avg and time
-        data.append(list(self.get_data_copy(len(names),self.net.avg_grid[0])))
-        data.append(list(self.get_data_copy(len(names),(env.next_hour+1)/24)))
+        data.append(list(self.get_data_copy(len(names),self.net.res_ext_grid.loc['Grid'][hour]/self.total_groups/1000)))
+        data.append(list(self.get_data_copy(len(names),(env.next_hour))))
         data=list(itertools.chain(*data))
         data=np.reshape(data,[1,len(data)])
         data[np.isnan(data)] = 0
         return data
 
 
-    def cal_reward(self,agent,env):
+    def cal_ireward(self,agent,env):
         """to return the reward
             agent =group
         """
         hour=env.hour
         group_len=len(self.agents[agent]["name"])
-        usable_grid=self.net.avg_grid[0]*group_len
+        usable_grid=self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents*group_len
         used_grid=self.grid_sell_call(self.agents[agent]["name"],hour)
         ireward=(usable_grid+1)/(used_grid+1)
-        if usable_grid<used_grid:
+        return ireward
+
+    def cal_greward(self,agent,env):
+        """to return the reward
+            agent =group
+        """
+        hour=env.hour
+        usable_grid,used_grid=0,0
+        usable_grid=self.net.res_ext_grid.loc['Grid'][hour]/self.total_groups
+        used_grid=self.grid_sell_call(self.agents[agent]["name"],hour)
+        if usable_grid < used_grid:
             env.done=True
-            greward=-10
+            greward=(usable_grid+1)/(used_grid+1)
         else:
-            greward=0.01
-        reward=ireward+greward
-        return reward
+            greward=(usable_grid+1)/(used_grid+1)
+        return -greward
 
     def implement_action(self,agent,env,actions):
         """implement action
@@ -191,6 +197,7 @@ class Learn_set():
                 self.set_res_storage_2ld(env,st_2ld,names[j])
                 self.set_storage(env,names[j])
             else:
+                raise Exception("soc is nan")
                 pass
 
     def pv_data_set(self,hour,name):
@@ -218,7 +225,6 @@ class Learn_set():
         Hour = "Hour-"+str(hour) 
         load_sell=self.net.res_ext_grid_2ld.loc[name][Hour]
         st_sell=self.net.res_ext_grid_2st.loc[name][Hour]
-
         return (np.sum(load_sell)+np.sum(st_sell))
     
     def storage_data_set(self,hour,name):
