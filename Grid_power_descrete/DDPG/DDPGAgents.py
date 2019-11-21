@@ -23,6 +23,10 @@ class Memory(object):
         self.capacity = capacity
         self.data = np.zeros((capacity, dims))
         self.pointer = 0
+        self.pre_memo= deque(maxlen=24)
+    
+    def memo(self,state, action, reward, next_state):
+        self.pre_memo.append((state, action, reward, next_state))
 
     def store_transition(self, s, a, r, s_):
         transition = np.hstack((s, a, r, s_))
@@ -56,10 +60,13 @@ class Policy:
         return self.action
 
 
-    def learn_act(self,state,reward,next_state):
-
-        self.M.store_transition(state,self.action,reward,next_state)
-        #print("self.name", state, self.action, reward, next_state )
+    def learn_act(self,state,reward,next_state,done,g_reward):
+        self.M.memo(state,self.action,reward,next_state)
+        if done:
+            for state, action, reward, next_state in self.M.pre_memo:
+                rewards=reward+g_reward
+                self.M.store_transition(state,self.action,rewards,next_state)
+            self.M.pre_memo= deque(maxlen=24)
         if self.M.pointer> BATCH_SIZE:
             b_M = self.M.sample(BATCH_SIZE)
             b_s = b_M[:, :self.state_dim]
