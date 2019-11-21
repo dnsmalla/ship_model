@@ -51,14 +51,17 @@ class Learn_set():
             for j in range(24):
                 env.hour = j
                 if j + 1 == env.hour_max:
+                    env.done=True
                     env.next_hour = 0
                 else:
                     env.next_hour = j + 1
+
                 for i in range(len(self.agents)):
                     agent="agent"+str(i)
                     input,action=self.get_action(agent,env)
                     next_s,reward=self.get_renex(agent,env)
-                    self.agents[agent]["Policy"].learn_act(input[0],reward,next_s[0])
+                    g_reward=self.cal_greward(env)
+                    self.agents[agent]["Policy"].learn_act(input[0],reward,next_s[0],env.done,g_reward)
                     if k+1==env.run_steps and j+1==24:
                         policy.save_model()
                     if j+1==24:
@@ -124,9 +127,9 @@ class Learn_set():
         """input as a agent which cotaint group name
             return reward and next state
         """
-        reward=self.cal_greward(agent,env)
+        ireward=self.cal_ireward(agent,env)
         next_state=self.cal_next_state(agent,env)
-        return next_state,reward
+        return next_state,ireward
 
     def cal_next_state(self,agent,env):
         hour=env.next_hour
@@ -150,26 +153,30 @@ class Learn_set():
             agent =group
         """
         hour=env.hour
+        usable_igrid,used_igrid=0,0
         group_len=len(self.agents[agent]["name"])
-        usable_grid=self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents*group_len
-        used_grid=self.grid_sell_call(self.agents[agent]["name"],hour)
-        ireward=(used_grid+1)/(usable_grid+1)
+        usable_igrid=(self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents)*group_len
+        used_igrid=self.grid_sell_call(self.agents[agent]["name"],hour)
+        if used_igrid>usable_igrid:
+            ireward=-(used_igrid)/(usable_igrid)
+        else:
+            ireward=0.1
         return ireward
 
-    def cal_greward(self,agent,env):
+    def cal_greward(self,env):
         """to return the reward
             agent =group
         """
         hour=env.hour
         usable_grid,used_grid=0,0
-        usable_grid=self.net.res_ext_grid.loc['Grid'][hour]/self.total_groups
-        used_grid=self.grid_sell_call(self.agents[agent]["name"],hour)
-        if usable_grid < used_grid:
+        usable_grid=self.net.res_ext_grid.loc['Grid'][hour]
+        used_grid=self.grid_sell_all_call(hour)
+        if used_grid>usable_grid:
             env.done=True
-            greward=(usable_grid+1)/(used_grid+1)
+            greward=-(used_grid)/(usable_grid)
         else:
             greward=0
-        return -greward
+        return greward
 
     def implement_action(self,agent,env,actions):
         """implement action
@@ -225,6 +232,17 @@ class Learn_set():
         Hour = "Hour-"+str(hour) 
         load_sell=self.net.res_ext_grid_2ld.loc[name][Hour]
         st_sell=self.net.res_ext_grid_2st.loc[name][Hour]
+        return (np.sum(load_sell)+np.sum(st_sell))
+
+    def grid_sell_all_call(self,hour):
+        """fro group data return
+        each time step [hour]
+        group member [name]
+        return specific time step all pv data
+        """
+        Hour = "Hour-"+str(hour) 
+        load_sell=self.net.res_ext_grid_2ld[Hour][:]
+        st_sell=self.net.res_ext_grid_2st[Hour][:]
         return (np.sum(load_sell)+np.sum(st_sell))
     
     def storage_data_set(self,hour,name):

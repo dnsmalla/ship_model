@@ -160,7 +160,7 @@ class Learn_set():
         usable_igrid=self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents
         used_igrid=self.grid_sell_call(agent,hour)
         if used_igrid>usable_igrid:
-            ireward=-(used_igrid+1)/(usable_igrid+1)
+            ireward=-(used_igrid)/(usable_igrid+1)
         else:
             ireward=0.1
 
