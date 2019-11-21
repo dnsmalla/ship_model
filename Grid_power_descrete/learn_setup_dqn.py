@@ -68,7 +68,8 @@ class Learn_set():
                         policy=self.agents[agent][ags+"Policy"]
                         input,action=self.get_action(agent,ags,env)
                         next_s,reward=self.get_renex(agent,ags,env)
-                        policy.learn_act(input,reward,next_s,env.done)
+                        g_reward=self.cal_greward(env)
+                        policy.learn_act(input,reward,next_s,env.done,g_reward)
                         if k+1==env.run_steps and j+1==24:
                             policy.save_model()
                         if j+1==24:
@@ -134,7 +135,7 @@ class Learn_set():
             return reward and next state
         """
         agent_len=len(self.agents[agents]["name"])
-        reward=self.cal_greward(agent_len,agents,agent,env)
+        reward=self.cal_ireward(agent_len,agents,agent,env)
         next_state=self.cal_next_state(agent_len,agent,env)
         return next_state,reward
 
@@ -158,11 +159,14 @@ class Learn_set():
         hour=env.hour
         usable_igrid=self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents
         used_igrid=self.grid_sell_call(agent,hour)
-        ireward=(usable_igrid+1)/(used_igrid+1)
+        if used_igrid>usable_igrid:
+            ireward=-(used_igrid+1)/(usable_igrid+1)
+        else:
+            ireward=0.1
 
         return ireward
     
-    def cal_greward(self,times,agents,agent,env):
+    def cal_greward(self,env):
         """to return the reward"""
         #for individual reward
         hour=env.hour

@@ -18,6 +18,7 @@ class DQNAgent:
         self.epsilon_decay = 0.995
         self.learning_rate = 0.001
         self.model = self._build_model()
+        self.pre_memo= deque(maxlen=24)
 
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
@@ -31,6 +32,9 @@ class DQNAgent:
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
+
+    def memo(self,state, action, reward, next_state, done):
+        self.pre_memo.append((state, action, reward, next_state, done))
 
     def act(self, state):
         if np.random.rand() <= self.epsilon:
@@ -71,8 +75,13 @@ class Policy:
         self.action = self.agent.act(state)
         return self.action
 
-    def learn_act(self,state,reward,next_state,done):
-        self.agent.remember(state,self.action,reward,next_state,done)
+    def learn_act(self,state,reward,next_state,done,global_reward):
+        self.agent.memo(state,self.action,reward,next_state,done)
+        if done:
+            for state, action, reward, next_state, done in self.agent.pre_memo:
+                rewards=reward+global_reward
+                self.agent.remember(state,self.action,rewards,next_state,done)
+            self.agent.pre_memo=deque(maxlen=24)
         self.agent.replay(self.batch_size)
 
         
