@@ -153,7 +153,7 @@ class Learn_set():
         group_len=len(self.agents[agent]["name"])
         usable_grid=self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents*group_len
         used_grid=self.grid_sell_call(self.agents[agent]["name"],hour)
-        ireward=(usable_grid+1)/(used_grid+1)
+        ireward=(used_grid+1)/(usable_grid+1)
         return ireward
 
     def cal_greward(self,agent,env):
@@ -168,7 +168,7 @@ class Learn_set():
             env.done=True
             greward=(usable_grid+1)/(used_grid+1)
         else:
-            greward=(usable_grid+1)/(used_grid+1)
+            greward=0
         return -greward
 
     def implement_action(self,agent,env,actions):

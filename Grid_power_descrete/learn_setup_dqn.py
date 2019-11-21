@@ -181,7 +181,6 @@ class Learn_set():
         """
         hour=env.hour
         Hour="Hour-"+str(hour)
-       
         load=self.net.res_load_data.at[agent,hour]
         pv  =self.net.res_pv_production.at[agent,hour]
         soc=self.net.res_storage_N_SOC.at[agent,Hour]
