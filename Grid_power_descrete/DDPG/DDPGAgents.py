@@ -43,6 +43,7 @@ class Policy:
     def __init__(self,state_dim,action_dim,name,action_bound=1):
         tf.compat.v1.reset_default_graph()
         self.sess=tf.Session()
+        self.name=name
         self.state_dim=state_dim
         self.action_dim=action_dim
         self.actor = Actor(self.sess,state_dim, action_dim, action_bound, LR_A, REPLACEMENT)
@@ -78,14 +79,14 @@ class Policy:
             self.actor.learn(b_s)
 
     def save_model(self):
-        path="./model_save/"+self.name
+        path="./model_save_ddpg/"+self.name
         if not os.path.exists(path):
             os.makedirs(path)
         self.saver.save(self.sess, path+"/model.ckpt")
 
 
     def test_model(self,state):
-        path="./model_save/"+self.name+"/model.ckpt"
+        path="./model_save_ddpg/"+self.name+"/model.ckpt"
         self.saver.restore(self.sess, path)
         self.action = self.actor.choose_action(state)
         return self.action
