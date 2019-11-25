@@ -4,11 +4,12 @@ import itertools
 import time
 from environments import Environment
 from DDPG import DDPGAgents
+import matplotlib.pyplot as plt
 
-class Learn_set():
+class Test_set():
     """to set up the learning models and network environment"""
 
-    def __init__(self,net,group,reset):
+    def __init__(self,net,group):
         """agent set up for group learning 
             agents name =agent+group_count
             agents[name]["name"]=agents in the group
@@ -17,7 +18,6 @@ class Learn_set():
         """
         self.net=net
         self.reward={}
-        self.reset=reset
         self.total_agents=len([name for names in group for name in names])
         self.total_groups=len([names for names in group] )
         env=Environment()
@@ -34,20 +34,24 @@ class Learn_set():
             input_len=5*len(group[l])
             action_len=len(group[l])
             self.agents[name]["Policy"]=DDPGAgents.Policy(input_len,action_len,g_name)
-        self.run(env)
+        self.test_run(env)
 
-    def run(self,env,train=True):
+    def test_run(self,env,train=True):
         """to run the all agent
             episodes
             time steps =24
         """
         start=time.time()
         env.train = True
-        env.run_steps =50000
+        env.run_steps =1
         env.hour_max = 24
+        for i in range(len(self.agents)):
+            agent="agent"+str(i)
+            self.agents[agent]["Policy"].test_model()
         for k in range(env.run_steps):
             env.step=k
             env.done=False
+
             for j in range(24):
                 env.hour = j
                 if j + 1 == env.hour_max:
@@ -62,29 +66,24 @@ class Learn_set():
                     next_s,reward=self.get_renex(agent,env)
                     g_reward=self.cal_greward(env)
                     self.agents[agent]["Policy"].learn_act(input[0],reward,next_s[0],env.done,g_reward)
-                    if k+1>env.run_steps-10 and j+1=env.hour_max:
-                        self.agents[agent]["Policy"].save_model()
-                    # if j+1==24:
-                    #     print(" steps",k,"  agent ",agent," reward ",reward)
                 if env.done:
-                    print("episodes",k,"terminated at",j)
+                    print("terminated at",j)
                     break
-            self.reward[str(k)]=j
-            self.reset(self.net)
-            now=time.time()
-            #print("time taken",now-start)
-        self.save_dict_to_file(self.reward)
+            self.plot_data()
 
-    def save_dict_to_file(self,dic):
-        f = open('dictddpg.txt','w')
-        f.write(str(dic))
-        f.close()
+    def plot_data(self,sow=False):
+        for i in range(len(self.agents)):
+            agent="agent"+str(i) 
+            names=self.agents[agent]["name"]
+            datas=self.net.res_storage_N_SOC.loc[names][:]
+            if sow:
+                plt.plot(datas.T)
+                plt.show()
+            else:
+                plt.plot(datas.T)
+                plt.title(agent)
+                plt.savefig(agent + '.png')
 
-    def load_dict_from_file(self):
-        f = open('dictddpg.txt','r')
-        data=f.read()
-        f.close()
-        return eval(data)
 
     def set_input(self,agent,env):
         """for hourly data set 
@@ -100,7 +99,6 @@ class Learn_set():
         data.append(list(self.load_data_set(hour,names)/1000))
         data.append(list(self.storage_data_set(hour,names)/1000))
         #avg_grid and time
-
         data.append(list(self.get_data_copy(len(names),self.net.res_ext_grid.loc['Grid'][hour]/self.total_groups/1000)))
         data.append(list(self.get_data_copy(len(names),(env.hour))))
        

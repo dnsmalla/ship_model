@@ -85,8 +85,6 @@ class Policy:
         self.saver.save(self.sess, path+"/model.ckpt")
 
 
-    def test_model(self,state):
+    def test_model(self):
         path="./model_save_ddpg/"+self.name+"/model.ckpt"
         self.saver.restore(self.sess, path)
-        self.action = self.actor.choose_action(state)
-        return self.action
