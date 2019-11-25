@@ -1,5 +1,6 @@
 from  data_control import Data_intialize
 from learn_setup_ddpg import Learn_set
+from test_agents import Test_set
 from network import *
 from circuit_plot import create_schem
 
@@ -71,7 +72,7 @@ net.create_line(bus9,bus15,length_km=1,direct="left",theta=180)
 net.create_line(bus15,bus16,length_km=1,direct="left",theta=180)
 #create_schem(net)
 #definde group for learning
-print(net.net)
+# print(net.net)
 group1=[h1,h2,h3]
 group2=[h4,h5,h6,h7]
 group3=[h8,h9,h10]
@@ -81,5 +82,6 @@ group6=[h14,h15]
 groups=[group1,group2,group3,group4,group5,group6]
 data=Data_intialize(net.net)
 ls=Learn_set(net.net,groups,Data_intialize)
-data=Data_intialize(net.net)
+#Test_set(net.net,groups)
+
 # create_schem(net)

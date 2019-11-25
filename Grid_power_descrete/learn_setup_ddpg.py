@@ -62,7 +62,7 @@ class Learn_set():
                     next_s,reward=self.get_renex(agent,env)
                     g_reward=self.cal_greward(env)
                     self.agents[agent]["Policy"].learn_act(input[0],reward,next_s[0],env.done,g_reward)
-                    if k+1>env.run_steps-10 and j+1=env.hour_max:
+                    if k+1>env.run_steps-10 and j+1==env.hour_max:
                         self.agents[agent]["Policy"].save_model()
                     # if j+1==24:
                     #     print(" steps",k,"  agent ",agent," reward ",reward)

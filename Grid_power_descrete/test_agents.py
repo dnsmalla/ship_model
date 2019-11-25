@@ -82,7 +82,7 @@ class Test_set():
             else:
                 plt.plot(datas.T)
                 plt.title(agent)
-                plt.savefig(agent + '.png')
+                plt.savefig("plot_result/"+agent + '.png')
 
 
     def set_input(self,agent,env):
