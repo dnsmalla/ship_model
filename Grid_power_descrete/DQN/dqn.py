@@ -93,6 +93,6 @@ class Policy:
         self.agent.save(path+".h5")
 
 
-    def test_model(self,state):
+    def test_model(self):
         path="./model_save/"+self.name
         self.agent.load(path+".h5")
