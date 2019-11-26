@@ -7,30 +7,30 @@ class Excel(object):
         self.data={}
         self.time_step=time_step
         self.total_agents=total_agent
-        
+
         if self.exist():
             for s in self.sheets():
                 self.data[s]=self.get_sheet(s)
-                column_data=self.data[s].columns   
+                column_data=self.data[s].columns
                 if self.total_agents is None:
                     self.total_agents=column_data[:]
-                    
+
     def __getitem__(self,k):
         return self.data[k]
-    
+
     def __setitem__(self,k,v):
         self.data[k]=v
-     
+
     def get_sheet(self,name="",fail_accept=True):
         if fail_accept and name not in self.sheets():
             return None
         else:
             return pd.read_excel(self.directory,sheet_name=name)
-    
+
     def sheets(self):
         """ read the sheets name"""
         return pd.ExcelFile(self.directory).sheet_names
-    
+
     def read_excel(self,f):
         """ read the file"""
         return pd.read_excel(f)
@@ -40,7 +40,7 @@ class Excel(object):
         """
         assert f in self.sheets(),"named sheet is not in excel"
         return pd.read_excel(self.directory,sheet_name=f)
-   
+
     def exist(self):
         """ to find out if the directory exist or not"""
         try:
@@ -48,7 +48,7 @@ class Excel(object):
             return True
         except FileNotFoundError:
             return False
-    
+
     def save(self):
         """ to save the data items to excel file"""
         with pd.ExcelWriter(self.directory,engine='xlsxwriter') as writer:
@@ -74,26 +74,26 @@ class Load_gen(object):
         load=np.random.randint(self.low_w,self.high_w,size=self.dt_time)
         data[_head]=load
         return pd.DataFrame(data,columns= [_head])
-    
+
     def _datas(self,cols):
         load_cols=[]
         for col in range(len(cols)):
             if len(load_cols)==0:
-                load_data=self._data(cols[col]) 
+                load_data=self._data(cols[col])
                 load_cols.append(load_data.columns[0])
             else:
-                load_datas=self._data(cols[col]) 
+                load_datas=self._data(cols[col])
                 if load_datas.columns[0] not in load_cols:
                     load_cols.append(load_datas.columns[0])
                     load_data=load_data.join(load_datas)
-                    
+
         return load_data
 
 
 class PV_gen(object):
 
     def __init__(self,start_t=5,end_t=18,dt_time=24,max_pv=4000,min_pv=1000):
-        """ low_w is min_pv is  minimum  pv production 
+        """ low_w is min_pv is  minimum  pv production
             max_pv is maximum point of pv production power
             dt_time is discretization of 24hour in to that form
             start_t is pv production starting point
@@ -106,10 +106,10 @@ class PV_gen(object):
         self.min_pv=min_pv
         self.start_data=0
         self._data_init()
-        
+
     def _data_init(self):
-        """ bin is for normal distribution 
-            low_w is min_pv is  minimum  pv production 
+        """ bin is for normal distribution
+            low_w is min_pv is  minimum  pv production
             max_pv is maximum point of pv production power
             dt_time is discretization of 24hour in to that form
             start_t is pv production starting point
@@ -129,7 +129,7 @@ class PV_gen(object):
             a.append(1/(sigma * np.sqrt(2 * np.pi)) *np.exp( - (bins[i] - mu)**2 / (2 * sigma**2) ))
         a=np.array(a)
         self.start_data= np.array(self.start_data)*a/4
-    
+
     def _data(self,_head):
         """create data for load"""
         data={}
@@ -137,26 +137,26 @@ class PV_gen(object):
         pv=pv*self.start_data
         data[_head]=pv
         return pd.DataFrame(data,columns= [_head])
-    
+
     def _datas(self,cols):
         """ to create random  data for all element data that are in pv name"""
         load_cols=[]
         for col in range(len(cols)):
             if len(load_cols)==0:
-                load_data=self._data(cols[col]) 
+                load_data=self._data(cols[col])
                 load_cols.append(load_data.columns[0])
             else:
-                load_datas=self._data(cols[col]) 
+                load_datas=self._data(cols[col])
                 if load_datas.columns[0] not in load_cols:
                     load_cols.append(load_datas.columns[0])
                     load_data=load_data.join(load_datas)
-                    
+
         return load_data
 
 class Storage_gen(object):
 
     def __init__(self,low_w=4000,high_w=5000,dt_time=1):
-        """ low_w is lower point of load power 
+        """ low_w is lower point of load power
             high_w is maximum point of load power
             dt_time is discretization of 24hour in to that form
         """
@@ -170,25 +170,25 @@ class Storage_gen(object):
         storage_soc=np.random.randint(self.low_w,self.high_w,size=self.dt_time)
         data[_head]=storage_soc
         return pd.DataFrame(data,columns= [_head])
-    
+
     def _datas(self,cols):
         sto_cols=[]
         for col in range(len(cols)):
             if len(sto_cols)==0:
-                sto_data=self._data(cols[col]) 
+                sto_data=self._data(cols[col])
                 sto_cols.append(sto_data.columns[0])
             else:
-                sto_datas=self._data(cols[col]) 
+                sto_datas=self._data(cols[col])
                 if sto_datas.columns[0] not in sto_cols:
                     sto_cols.append(sto_datas.columns[0])
                     sto_data=sto_data.join(sto_datas)
-                    
+
         return sto_data
 
 class Grid_gen(object):
 
     def __init__(self,pw_type=3,low_w=18000,high_w=20000,dt_time=24):
-        """ low_w is lower point of load power 
+        """ low_w is lower point of load power
             high_w is maximum point of load power
             dt_time is discretization of 24hour in to that form
         """
@@ -203,7 +203,7 @@ class Grid_gen(object):
         grid=self._copy_data()
         data[_head]=grid
         return pd.DataFrame(data,columns= [_head])
-    
+
     def _copy_data(self):
         data=np.random.randint(self.low_w,self.high_w,size=self.pw_type)
         data.sort()
@@ -213,17 +213,17 @@ class Grid_gen(object):
             for j in range(len(re_data)):
                 datas.append(re_data[j])
         return datas
-              
+
     def _datas(self,cols):
         grid_cols=[]
         for col in range(len(cols)):
             if len(grid_cols)==0:
-                grid_data=self._data(cols[col]) 
+                grid_data=self._data(cols[col])
                 grid_cols.append(grid_data.columns[0])
             else:
-                grid_datas=self._data(cols[col]) 
+                grid_datas=self._data(cols[col])
                 if grid_datas.columns[0] not in grid_cols:
                     grid_cols.append(grid_datas.columns[0])
                     grid_data=grid_data.join(grid_datas)
-                    
+
         return grid_data
