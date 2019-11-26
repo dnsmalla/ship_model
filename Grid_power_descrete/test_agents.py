@@ -75,6 +75,7 @@ class Test_set():
         for i in range(len(self.agents)):
             agent="agent"+str(i) 
             names=self.agents[agent]["name"]
+            print(self.net.res_storage_N_SOC.loc[names][:])
             datas=self.net.res_storage_N_SOC.loc[names][:]
             if sow:
                 plt.plot(datas.T)
@@ -184,7 +185,7 @@ class Test_set():
         names=self.agents[agent]["name"]
         assert len(names)==len(actions),"action length is not sufficient to implement all agents"
         Hour="Hour-"+str(hour)
-       
+        print("this is action",actions)
         for j in range(len(names)):
             load=self.net.res_load_data.at[names[j],hour]
             pv  =self.net.res_pv_production.at[names[j],hour]

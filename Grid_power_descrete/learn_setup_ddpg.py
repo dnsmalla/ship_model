@@ -1,5 +1,5 @@
 import pandas as pd
-import numpy as np 
+import numpy as np
 import itertools
 import time
 from environments import Environment
@@ -9,7 +9,7 @@ class Learn_set():
     """to set up the learning models and network environment"""
 
     def __init__(self,net,group,reset):
-        """agent set up for group learning 
+        """agent set up for group learning
             agents name =agent+group_count
             agents[name]["name"]=agents in the group
             agent[policy]=policy that we use for learning
@@ -87,7 +87,7 @@ class Learn_set():
         return eval(data)
 
     def set_input(self,agent,env):
-        """for hourly data set 
+        """for hourly data set
          pv , storage , load
         load all agents members data from pv , storage , load
         return list of all data
@@ -103,7 +103,7 @@ class Learn_set():
 
         data.append(list(self.get_data_copy(len(names),self.net.res_ext_grid.loc['Grid'][hour]/self.total_groups/1000)))
         data.append(list(self.get_data_copy(len(names),(env.hour))))
-       
+
         data=list(itertools.chain(*data))
         data=np.reshape(data,[1,len(data)])
         data[np.isnan(data)] = 0
@@ -186,7 +186,7 @@ class Learn_set():
         names=self.agents[agent]["name"]
         assert len(names)==len(actions),"action length is not sufficient to implement all agents"
         Hour="Hour-"+str(hour)
-       
+
         for j in range(len(names)):
             load=self.net.res_load_data.at[names[j],hour]
             pv  =self.net.res_pv_production.at[names[j],hour]
@@ -214,7 +214,7 @@ class Learn_set():
         return specific time step group members pv data
         """
         return self.net.res_pv_production.loc[name][hour]
-    
+
     def load_data_set(self,hour,name):
         """fro group data return
         each time step [hour]
@@ -229,7 +229,7 @@ class Learn_set():
         group member [name]
         return specific time step all pv data
         """
-        Hour = "Hour-"+str(hour) 
+        Hour = "Hour-"+str(hour)
         load_sell=self.net.res_ext_grid_2ld.loc[name][Hour]
         st_sell=self.net.res_ext_grid_2st.loc[name][Hour]
         return (np.sum(load_sell)+np.sum(st_sell))
@@ -240,11 +240,11 @@ class Learn_set():
         group member [name]
         return specific time step all pv data
         """
-        Hour = "Hour-"+str(hour) 
+        Hour = "Hour-"+str(hour)
         load_sell=self.net.res_ext_grid_2ld[Hour][:]
         st_sell=self.net.res_ext_grid_2st[Hour][:]
         return (np.sum(load_sell)+np.sum(st_sell))
-    
+
     def storage_data_set(self,hour,name):
         """fro group data return
         each time step [hour]
@@ -262,14 +262,14 @@ class Learn_set():
         return specific time step all pv data
         """
         return self.net.res_pv_production[hour][:]
-    
+
     def storage_data_call(self,hour,name):
         """fro group data return
         each time step [hour]
         group member [name]
         return specific time step group members storage data
         """
-        Hour="Hour-"+str(hour) 
+        Hour="Hour-"+str(hour)
         return self.net.res_storage_N_SOC[Hour][:]
 
     def load_data_call(self,hour):
@@ -282,49 +282,49 @@ class Learn_set():
 
     def set_res_pv_2st(self,env, data,name):
         """to set the result to pv_res which set data to pv to storage and res_storge charge """
-        Hour="Hour-"+str(env.hour) 
-        n_Hour="Hour-"+str(env.next_hour) 
+        Hour="Hour-"+str(env.hour)
+        n_Hour="Hour-"+str(env.next_hour)
         self.net.res_pv_2st.loc[name][Hour]=data
 
     def set_res_pv_2ld(self,env, data,name):
         """to set the result to pv_res which set data to pv to load and load charge """
-        Hour="Hour-"+str(env.hour) 
+        Hour="Hour-"+str(env.hour)
         self.net.res_pv_2ld.at[name,Hour]=data
         self.net.res_load_4pv.at[name,Hour]=data
         self.net.res_load.loc[name]["pv_p_w"]=data
-    
+
     def set_res_pv_2sell(self,env, data,name):
         """to set the result to pv_res which set data to pv to load and load charge """
-        Hour="Hour-"+str(env.hour) 
+        Hour="Hour-"+str(env.hour)
         self.net.res_pv_2sell.at[name,Hour]=data
         self.net.res_ext_grid_buy.at[name,Hour]=data
 
     def set_res_ext_grid_2ld(self,env, data,name):
         """to set the result to pv_res which set data to pv to load and load charge """
-        Hour="Hour-"+str(env.hour) 
+        Hour="Hour-"+str(env.hour)
         self.net.res_load.loc[name]['grid_p_w']=data
         self.net.res_load_4grid.at[name,Hour]=data
         self.net.res_ext_grid_2ld.at[name,Hour]=data
-    
+
     def set_res_ext_grid_2st(self, env, data,name):
         """to set the result to pv_res which set data to pv to load and load charge """
-        Hour="Hour-"+str(env.hour) 
-        n_Hour="Hour-"+str(env.next_hour) 
+        Hour="Hour-"+str(env.hour)
+        n_Hour="Hour-"+str(env.next_hour)
         self.net.res_storage.loc[name]['grid_charge']=data
         self.net.res_ext_grid_2st.at[name,Hour]=data
 
 
     def set_res_storage_2ld(self, env, data,name):
         """to set the result to pv_res which set data to pv to load and load charge """
-        Hour="Hour-"+str(env.hour) 
-        n_Hour="Hour-"+str(env.next_hour)  
+        Hour="Hour-"+str(env.hour)
+        n_Hour="Hour-"+str(env.next_hour)
         self.net.res_storage_discharge.at[name,Hour]=data
         self.net.res_load_4st.at[name,Hour]=data
         self.net.res_load.loc[name]['st_p_w']=data
 
     def set_storage(self,env,name):
         """to set the soc value to the storage new state"""
-        Hour="Hour-"+str(env.hour) 
+        Hour="Hour-"+str(env.hour)
         n_Hour="Hour-"+str(env.next_hour)
         self.net.res_storage_charge.at[name,Hour]=0.0
         self.net.res_storage_charge.at[name,Hour]=self.net.res_pv_2st.at[name,Hour]+self.net.res_ext_grid_2st.at[name,Hour]
@@ -421,7 +421,7 @@ class Learn_set():
                         st_2ld   =0
                         st_4grid =1000
                         st_4pv   =0
-                        load_4grid=load-pv 
+                        load_4grid=load-pv
                 else:
                     balance = storage_max - soc
                     if balance>1000:

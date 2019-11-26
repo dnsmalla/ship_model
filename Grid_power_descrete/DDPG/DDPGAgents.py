@@ -56,7 +56,7 @@ class Policy:
 
     def choose_action(self,state,step):
         """ action is  action + noise"""
-        self.action = self.actor.choose_action(state)+self.noise.generate(step)
+        self.action = self.actor.choose_action(state)#+self.noise.generate(step)
 
         return self.action
 
