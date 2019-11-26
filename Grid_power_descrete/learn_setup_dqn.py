@@ -68,19 +68,19 @@ class Learn_set():
                         policy=self.agents[agent][ags+"Policy"]
                         input,action=self.get_action(agent,ags,env)
                         next_s,reward=self.get_renex(agent,ags,env)
-                        g_reward=self.cal_greward(env)
+                        g_reward=self.cal_greward(env,learn_agent)
                         policy.learn_act(input,reward,next_s,env.done,g_reward)
                         if k+1==env.run_steps and j+1==24:
                             policy.save_model()
-                        if j+1==24:
-                            print(" steps",k,"  agent ",ags," reward ",reward)
+                        # if j+1==24:
+                        #     print(" steps",k,"  agent ",ags," reward ",reward)
                 if env.done:
-                    print("terminated at",j)
+                    print("episodes",k,"terminated at",j)
                     break
             self.reward[str(k)]=j
             self.reset(self.net)
             now=time.time()
-            print("time taken",now-start)
+            #print("time taken",now-start)
         self.save_dict_to_file(self.reward)
 
     def save_dict_to_file(self,dic):
@@ -166,13 +166,13 @@ class Learn_set():
 
         return ireward
     
-    def cal_greward(self,env):
+    def cal_greward(self,env,name):
         """to return the reward"""
         #for individual reward
         hour=env.hour
-        usable_grid=self.net.res_ext_grid.loc['Grid'][hour]
-        used_grid=self.grid_sell_all_call(hour)
-        if used_grid>usable_grid:
+        usable_grid=self.net.res_ext_grid.loc['Grid'][hour]/len(name)
+        used_grid=self.grid_sell_all_call(hour,name)
+        if used_grid > usable_grid:
             env.done=True
             g_reward=-10
         else:
@@ -235,15 +235,15 @@ class Learn_set():
         """
         return self.net.res_pv_production[hour][:]
     
-    def grid_sell_all_call(self,hour):
+    def grid_sell_all_call(self,hour,names):
         """fro group data return
         each time step [hour]
         group member [name]
         return specific time step all pv data
         """
         Hour = "Hour-"+str(hour) 
-        load_sell=self.net.res_ext_grid_2ld[Hour][:]
-        st_sell=self.net.res_ext_grid_2st[Hour][:]
+        load_sell=self.net.res_ext_grid_2ld.loc[names][Hour]
+        st_sell=self.net.res_ext_grid_2st.loc[names][Hour]
         return (np.sum(load_sell)+np.sum(st_sell))
 
     def grid_sell_call(self,name,hour):
