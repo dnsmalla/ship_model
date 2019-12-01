@@ -79,12 +79,12 @@ class DQNAgent:
 
 
 class Policy:
-    def __init__(self,state_dim,action_dim,name):
+    def __init__(self,state_dim,action_dim,name,test=False):
         self.state_dim=state_dim
         self.name=name
         self.action_dim=action_dim
         self.batch_size=34
-        self.agent=DQNAgent(self.state_dim,self.action_dim)
+        self.agent=DQNAgent(self.state_dim,self.action_dim,test)
 
     def choose_action(self,state):
         self.action = self.agent.act(state)

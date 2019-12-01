@@ -1,5 +1,5 @@
 import pandas as pd
-import numpy as np 
+import numpy as np
 import itertools
 import time
 import random
@@ -11,7 +11,7 @@ class Test_dqn():
     """to set up the learning models and network environment"""
 
     def __init__(self,net,group):
-        """agent set up for group learning 
+        """agent set up for group learning
             agents name =agent+group_count
             agents[name]["name"]=agents in the group
             agent[policy]=policy that we use for learning
@@ -36,7 +36,7 @@ class Test_dqn():
             action_len=2
             for gm in range(len(group[l])):
                 policy=group[l][gm]+"Policy"
-                self.agents[name][policy]=Policy(input_len,action_len,group[l][gm])
+                self.agents[name][policy]=Policy(input_len,action_len,group[l][gm],test=True)
         self.run(env)
 
     def run(self,env,train=True):
@@ -75,6 +75,7 @@ class Test_dqn():
                         input,action=self.get_action(agent,ags,env)
                         next_s,reward=self.get_renex(agent,ags,env)
                         g_reward=self.cal_greward(env,learn_agent)
+                        print("state_next",input,reward,next_s,env.done,g_reward)
                         policy.learn_act(input,reward,next_s,env.done,g_reward)
                         if k+1==env.run_steps and j+1==24:
                             policy.save_model()
@@ -85,7 +86,7 @@ class Test_dqn():
 
     def plot_data(self,sow=True):
         for i in range(len(self.agents)):
-            agent="agent"+str(i) 
+            agent="agent"+str(i)
             names=self.agents[agent]["name"]
             datas=self.net.res_storage_N_SOC.loc[names][:]
             if sow:
@@ -97,7 +98,7 @@ class Test_dqn():
                 plt.savefig("plot_result/"+agent + '.png')
 
     def set_input(self,times,agent,env):
-        """for hourly data set 
+        """for hourly data set
          pv , storage , load
         load all agents members data from pv , storage , load
         return list of all data
@@ -167,7 +168,7 @@ class Test_dqn():
             ireward=0.1
 
         return ireward
-    
+
     def cal_greward(self,env,name):
         """to return the reward"""
         #for individual reward
@@ -210,7 +211,7 @@ class Test_dqn():
         return specific time step group members pv data
         """
         return self.net.res_pv_production.at[name,hour]
-    
+
     def load_data_set(self,hour,name):
         """fro group data return
         each time step [hour]
@@ -218,7 +219,7 @@ class Test_dqn():
         return specific time step group members load data
         """
         return self.net.res_load_data.at[name,hour]
-    
+
     def storage_data_set(self,hour,name):
         """fro group data return
         each time step [hour]
@@ -236,14 +237,14 @@ class Test_dqn():
         return specific time step all pv data
         """
         return self.net.res_pv_production[hour][:]
-    
+
     def grid_sell_all_call(self,hour,names):
         """fro group data return
         each time step [hour]
         group member [name]
         return specific time step all pv data
         """
-        Hour = "Hour-"+str(hour) 
+        Hour = "Hour-"+str(hour)
         load_sell=self.net.res_ext_grid_2ld.loc[names][Hour]
         st_sell=self.net.res_ext_grid_2st.loc[names][Hour]
         return (np.sum(load_sell)+np.sum(st_sell))
@@ -254,18 +255,18 @@ class Test_dqn():
         group member [name]
         return specific time step all pv data
         """
-        Hour = "Hour-"+str(hour) 
+        Hour = "Hour-"+str(hour)
         load_sell=self.net.res_ext_grid_2ld.loc[name][Hour]
         st_sell=self.net.res_ext_grid_2st.loc[name][Hour]
         return (load_sell+st_sell)
-    
+
     def storage_data_call(self,hour,name):
         """fro group data return
         each time step [hour]
         group member [name]
         return specific time step group members storage data
         """
-        Hour="Hour-"+str(hour) 
+        Hour="Hour-"+str(hour)
         return self.net.res_storage_N_SOC[Hour][:]
 
     def load_data_call(self,hour):
@@ -278,49 +279,49 @@ class Test_dqn():
 
     def set_res_pv_2st(self,env, data,name):
         """to set the result to pv_res which set data to pv to storage and res_storge charge """
-        Hour="Hour-"+str(env.hour) 
-        n_Hour="Hour-"+str(env.next_hour) 
+        Hour="Hour-"+str(env.hour)
+        n_Hour="Hour-"+str(env.next_hour)
         self.net.res_pv_2st.loc[name][Hour]=data
 
     def set_res_pv_2ld(self,env, data,name):
         """to set the result to pv_res which set data to pv to load and load charge """
-        Hour="Hour-"+str(env.hour) 
+        Hour="Hour-"+str(env.hour)
         self.net.res_pv_2ld.at[name,Hour]=data
         self.net.res_load_4pv.at[name,Hour]=data
         self.net.res_load.loc[name]["pv_p_w"]=data
-    
+
     def set_res_pv_2sell(self,env, data,name):
         """to set the result to pv_res which set data to pv to load and load charge """
-        Hour="Hour-"+str(env.hour) 
+        Hour="Hour-"+str(env.hour)
         self.net.res_pv_2sell.at[name,Hour]=data
         self.net.res_ext_grid_buy.at[name,Hour]=data
     #todo
     def set_res_ext_grid_2ld(self,env, data,name):
         """to set the result to pv_res which set data to pv to load and load charge """
-        Hour="Hour-"+str(env.hour) 
+        Hour="Hour-"+str(env.hour)
         self.net.res_load.loc[name]['grid_p_w']=data
         self.net.res_load_4grid.at[name,Hour]=data
         self.net.res_ext_grid_2ld.at[name,Hour]=data
-    
+
     def set_res_ext_grid_2st(self, env, data,name):
         """to set the result to pv_res which set data to pv to load and load charge """
-        Hour="Hour-"+str(env.hour) 
-        n_Hour="Hour-"+str(env.next_hour) 
+        Hour="Hour-"+str(env.hour)
+        n_Hour="Hour-"+str(env.next_hour)
         self.net.res_storage.loc[name]['grid_charge']=data
         self.net.res_ext_grid_2st.at[name,Hour]=data
     #todo
 
     def set_res_storage_2ld(self, env, data,name):
         """to set the result to pv_res which set data to pv to load and load charge """
-        Hour="Hour-"+str(env.hour) 
-        n_Hour="Hour-"+str(env.next_hour)  
+        Hour="Hour-"+str(env.hour)
+        n_Hour="Hour-"+str(env.next_hour)
         self.net.res_storage_discharge.at[name,Hour]=data
         self.net.res_load_4st.at[name,Hour]=data
         self.net.res_load.loc[name]['st_p_w']=data
 
     def set_storage(self,env,name):
         """to set the soc value to the storage new state"""
-        Hour="Hour-"+str(env.hour) 
+        Hour="Hour-"+str(env.hour)
         n_Hour="Hour-"+str(env.next_hour)
         self.net.res_storage_charge.at[name,Hour]=0.0
         self.net.res_storage_charge.at[name,Hour]=self.net.res_pv_2st.at[name,Hour]+self.net.res_ext_grid_2st.at[name,Hour]
@@ -417,7 +418,7 @@ class Test_dqn():
                         st_2ld   =0
                         st_4grid =1000
                         st_4pv   =0
-                        load_4grid=load-pv 
+                        load_4grid=load-pv
                 else:
                     balance = storage_max - soc
                     if balance>1000:

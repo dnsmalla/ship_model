@@ -46,7 +46,7 @@ class Learn_set():
         """
         start=time.time()
         env.train = True
-        env.run_steps =5000
+        env.run_steps =200
         env.hour_max = 24
         for k in range(env.run_steps):
 
@@ -69,8 +69,9 @@ class Learn_set():
                         input,action=self.get_action(agent,ags,env)
                         next_s,reward=self.get_renex(agent,ags,env)
                         g_reward=self.cal_greward(env,learn_agent)
+
                         policy.learn_act(input,reward,next_s,env.done,g_reward)
-                        if k+1==env.run_steps and j+1==24:
+                        if k+1>env.run_steps-5 and j+1==24:
                             policy.save_model()
                         # if j+1==24:
                         #     print(" steps",k,"  agent ",ags," reward ",reward)
