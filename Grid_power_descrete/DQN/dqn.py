@@ -8,10 +8,11 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 
 class DQNAgent:
-    def __init__(self, state_size, action_size):
+    def __init__(self, state_size, action_size,test=False):
         self.state_size = state_size
         self.action_size = action_size
         self.memory = deque(maxlen=2000)
+        self.test=test
         self.gamma = 0.95    # discount rate
         self.epsilon = 1.0  # exploration rate
         self.epsilon_min = 0.01
@@ -37,7 +38,7 @@ class DQNAgent:
         self.pre_memo.append((state, action, reward, next_state, done))
 
     def act(self, state):
-        if np.random.rand() <= self.epsilon:
+        if np.random.rand() <= self.epsilon and not self.test:
             return random.randrange(self.action_size)
         act_values = self.model.predict(state)
         return np.argmax(act_values[0])  # returns action
@@ -64,12 +65,12 @@ class DQNAgent:
 
 
 class Policy:
-    def __init__(self,state_dim,action_dim,name):
+    def __init__(self,state_dim,action_dim,name,test=False):
         self.state_dim=state_dim
         self.name=name
         self.action_dim=action_dim
         self.batch_size=34
-        self.agent=DQNAgent(self.state_dim,self.action_dim)
+        self.agent=DQNAgent(self.state_dim,self.action_dim,test)
 
     def choose_action(self,state):
         self.action = self.agent.act(state)

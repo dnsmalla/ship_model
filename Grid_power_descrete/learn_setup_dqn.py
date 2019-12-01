@@ -32,11 +32,11 @@ class Learn_set():
             self.agents[name]["group_name"]=g_name
             self.agents[name]["name"]=group[l]
             self.agents[name]["grid"]=0
-            input_len=5
+            input_len=7
             action_len=2
             for gm in range(len(group[l])):
                 policy=group[l][gm]+"Policy"
-                self.agents[name][policy]=Policy(input_len,action_len,group[l][gm])
+                self.agents[name][policy]=Policy(input_len,action_len,group[l][gm],test=False)
         self.run(env)
 
     def run(self,env,train=True):
@@ -108,6 +108,14 @@ class Learn_set():
         #avg_grid and time
         data.append(self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)
         data.append((env.hour))
+        if data[1]>1:
+            data.append(1)
+        else:
+            data.append(0)
+        if data[1]<data[2]:
+            data.append(0)
+        else:
+            data.append(-1)
         data=np.reshape(data,[1,len(data)])
         data[np.isnan(data)] = 0
         return data
@@ -115,6 +123,17 @@ class Learn_set():
 
     #Todo
     def get_action(self,agents,agent,env):
+        """implement the data to get the action
+        group data to get group action
+        """
+        agent_len=len(self.agents[agents]["name"])
+        data=self.set_input(agent_len,agent,env)
+        policy=agent+"Policy"
+        action=self.agents[agents][policy].choose_action(data)
+        self.implement_action(agent,env,action)
+        return data,action
+    
+    def get_l_action(self,agents,agent,env):
         """implement the data to get the action
         group data to get group action
         """
@@ -136,8 +155,9 @@ class Learn_set():
         """
         agent_len=len(self.agents[agents]["name"])
         reward=self.cal_ireward(agent_len,agents,agent,env)
-        next_state=self.cal_next_state(agent_len,agent,env)
-        return next_state,reward
+        data=self.cal_next_state(agent_len,agent,env)
+        
+        return data,reward
 
     def cal_next_state(self,times,agent,env):
         hour=env.next_hour
@@ -148,6 +168,14 @@ class Learn_set():
         #grid_avg and time
         data.append(self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)
         data.append((env.next_hour))
+        if data[1]>1:
+            data.append(1)
+        else:
+            data.append(0)
+        if data[1]<data[2]:
+            data.append(0)
+        else:
+            data.append(-1)
         data=np.reshape(data,[1,len(data)])
         data[np.isnan(data)] = 0
         return data
@@ -174,7 +202,7 @@ class Learn_set():
         used_grid=self.grid_sell_all_call(hour,name)
         if used_grid > usable_grid:
             env.done=True
-            g_reward=-10
+            g_reward=-1
         else:
             g_reward=0.1
         return g_reward
