@@ -11,6 +11,7 @@ class DQNAgent:
     def __init__(self, state_size, action_size,test=False):
         self.state_size = state_size
         self.action_size = action_size
+        self.test=test
         self.memory = deque(maxlen=2000)
         self.test=test
         self.gamma = 0.95    # discount rate
@@ -85,7 +86,7 @@ class Policy:
             self.agent.pre_memo=deque(maxlen=24)
         self.agent.replay(self.batch_size)
 
-        
+
     def save_model(self):
         path="./model_save/"
         if not os.path.exists(path):

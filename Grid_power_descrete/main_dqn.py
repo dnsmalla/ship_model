@@ -80,7 +80,7 @@ group5=[h13]
 group6=[h14,h15]
 groups=[group1,group2,group3,group4,group5,group6]
 data=Data_intialize(net.net)
-ls=Learn_set(net.net,groups,Data_intialize)
-data=Data_intialize(net.net)
+#ls=Learn_set(net.net,groups,Data_intialize)
+#data=Data_intialize(net.net)
 ts= Test_dqn(net.net,groups)
 # create_schem(net)
