@@ -5,11 +5,12 @@ import time
 import random
 from environments import Environment
 from DQN.qlearn0 import Policy
+import matplotlib.pyplot as plt
 
-class Learn_set():
+class Test_group():
     """to set up the learning models and network environment"""
 
-    def __init__(self,net,group,reset):
+    def __init__(self,net,group):
         """agent set up for group learning
             agents name =agent+group_count
             agents[name]["name"]=agents in the group
@@ -17,7 +18,6 @@ class Learn_set():
             call data_setup for getting data for learning
         """
         self.net=net
-        self.reset=reset
         self.total_groups=len([names for names in group])
         self.total_agents=len([name for names in group for name in names])
         env=Environment()
@@ -38,6 +38,14 @@ class Learn_set():
             for gm in range(len(group[l])):
                 policy=group[l][gm]+"Policy"
                 self.agents[name][policy]=Policy(input_len,action_len,group[l][gm],test=False)
+        
+        for l in range(len(group)):
+            name="agent"+str(l)
+            g_name="group"+str(l)
+            for gm in range(len(group[l])):
+                policy=group[l][gm]+"Policy"
+                self.agents[name][policy].test_model()
+        
         self.run(env)
 
     def run(self,env,train=True):
@@ -47,7 +55,7 @@ class Learn_set():
         """
         start=time.time()
         env.train = True
-        env.run_steps =5
+        env.run_steps =1
         env.hour_max = 24
         for k in range(env.run_steps):
             env.step=k
@@ -63,22 +71,13 @@ class Learn_set():
                 for i in range(len(self.agents)):
                     agent="agent"+str(i)
                     self.get_action(agent,env)
-                     
-                    if k+1>env.run_steps-10 and j+1==env.hour_max:
-                        names=names=self.agents[agent]["name"]
-                        for now in range(len(names)):
-                            policy=names[now]+"Policy"
-                            self.agents[agent][policy].save_model()
-                    # if j+1==24:
-                    #     print(" steps",k,"  agent ",agent," reward ",reward)
                 if env.done:
                     print("episodes",k,"terminated at",j)
                     break
-            self.reward[str(k)]=j
-            self.reset(self.net)
-            now=time.time()
-            #print("time taken",now-start)
-        self.save_dict_to_file(self.reward)
+
+        print(self.load_dict_from_file())
+        plt.plot(self.load_dict_from_file().values())
+        plt.show()
 
     def save_dict_to_file(self,dic):
         f = open('dictddpg.txt','w')
@@ -349,6 +348,10 @@ class Learn_set():
 
     def balance(self,storage_max,storage_min,soc,pv,load,action,hour,dt=1):
         """get data and return data  """
+        if action>0:
+            action=1
+        else:
+            action=0
         action=self.actions[action]
         grid_buy =0
         grid_sell=0

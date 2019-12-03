@@ -1,6 +1,6 @@
 from  data_control import Data_intialize
 from group_descrete_setup import Learn_set
-from test_dqn import Test_dqn
+from test_group import Test_group
 from network import *
 from circuit_plot import create_schem
 
@@ -70,6 +70,5 @@ group4=[h13,h14,h15,h16]
 groups=[group1,group2,group3,group4]
 data=Data_intialize(net.net)
 ls=Learn_set(net.net,groups,Data_intialize)
-ts= Test_dqn(net.net,groups)
-data=Data_intialize(net.net)
+ts= Test_group(net.net,groups)
 # create_schem(net)
