@@ -170,7 +170,6 @@ class Test_dqn():
         return data
 
 
-
     def cal_ireward(self,times,agents,agent,env):
         """to return the reward"""
         #for individual reward
