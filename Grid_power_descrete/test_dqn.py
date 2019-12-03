@@ -32,14 +32,14 @@ class Test_dqn():
             self.agents[name]["group_name"]=g_name
             self.agents[name]["name"]=group[l]
             self.agents[name]["grid"]=0
-            input_len=5
+            input_len=7
             action_len=2
             for gm in range(len(group[l])):
                 policy=group[l][gm]+"Policy"
                 self.agents[name][policy]=Policy(input_len,action_len,group[l][gm],test=True)
         self.run(env)
 
-    def run(self,env,train=True):
+    def run(self,env,train=False):
         """to run the all agent
             episodes
             time steps =24
@@ -75,7 +75,6 @@ class Test_dqn():
                         input,action=self.get_action(agent,ags,env)
                         next_s,reward=self.get_renex(agent,ags,env)
                         g_reward=self.cal_greward(env,learn_agent)
-                        print("state_next",input,reward,next_s,env.done,g_reward)
                         policy.learn_act(input,reward,next_s,env.done,g_reward)
                         if k+1==env.run_steps and j+1==24:
                             policy.save_model()
@@ -111,10 +110,17 @@ class Test_dqn():
         #avg_grid and time
         data.append(self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)
         data.append((env.hour))
+        if data[1]>1:
+            data.append(1)
+        else:
+            data.append(0)
+        if data[1]<data[2]:
+            data.append(0)
+        else:
+            data.append(-1)
         data=np.reshape(data,[1,len(data)])
         data[np.isnan(data)] = 0
         return data
-
 
     #Todo
     def get_action(self,agents,agent,env):
@@ -151,9 +157,18 @@ class Test_dqn():
         #grid_avg and time
         data.append(self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)
         data.append((env.next_hour))
+        if data[1]>1:
+            data.append(1)
+        else:
+            data.append(0)
+        if data[1]<data[2]:
+            data.append(0)
+        else:
+            data.append(-1)
         data=np.reshape(data,[1,len(data)])
         data[np.isnan(data)] = 0
         return data
+
 
 
     def cal_ireward(self,times,agents,agent,env):
