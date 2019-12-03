@@ -69,7 +69,7 @@ group4=[h13,h14,h15,h16]
 
 groups=[group1,group2,group3,group4]
 data=Data_intialize(net.net)
-#ls=Learn_set(net.net,groups,Data_intialize)
+ls=Learn_set(net.net,groups,Data_intialize)
 ts= Test_dqn(net.net,groups)
 data=Data_intialize(net.net)
 # create_schem(net)
