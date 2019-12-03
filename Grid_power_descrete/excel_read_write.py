@@ -197,6 +197,7 @@ class Grid_gen(object):
         self.high_w=high_w
         self.dt_time=dt_time
 
+
     def _data(self,_head):
         """create data for load"""
         data={}
@@ -207,11 +208,11 @@ class Grid_gen(object):
     def _copy_data(self):
         data=np.random.randint(self.low_w,self.high_w,size=self.pw_type)
         data.sort()
-        datas=[]
-        for i in range(self.pw_type):
-            re_data=list([data[i]]*(self.dt_time//self.pw_type))
-            for j in range(len(re_data)):
-                datas.append(re_data[j])
+        datas=[20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,]
+        # for i in range(self.pw_type):
+        #     re_data=list([data[i]]*(self.dt_time//self.pw_type))
+        #     for j in range(len(re_data)):
+        #         datas.append(re_data[j])
         return datas
 
     def _datas(self,cols):

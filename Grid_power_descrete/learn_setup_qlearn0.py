@@ -46,7 +46,7 @@ class Learn_set():
         """
         start=time.time()
         env.train = True
-        env.run_steps =100
+        env.run_steps =500
         env.hour_max = 24
         for k in range(env.run_steps):
 
@@ -203,7 +203,7 @@ class Learn_set():
         used_grid=self.grid_sell_all_call(hour,name)
         if used_grid > usable_grid:
             env.done=True
-            g_reward=-1
+            g_reward=-10
         else:
             g_reward=0.1
         return g_reward
