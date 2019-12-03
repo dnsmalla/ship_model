@@ -4,7 +4,6 @@ import numpy as np
 import tensorflow as tf
 from collections import deque
 np.random.seed(1)
-tf.set_random_seed(-1)
 
 class Memory:
     def __init__(self, capacity, dims):
