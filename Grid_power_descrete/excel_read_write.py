@@ -61,6 +61,7 @@ class Load_gen(object):
 
     def __init__(self,low_w=1000,high_w=2000,dt_time=24):
         """ low_w is lower point of load power 
+            low_w is lower point of load power
             high_w is maximum point of load power
             dt_time is discretization of 24hour in to that form
         """
@@ -187,7 +188,7 @@ class Storage_gen(object):
 
 class Grid_gen(object):
 
-    def __init__(self,pw_type=3,low_w=18000,high_w=20000,dt_time=24):
+    def __init__(self,pw_type=3,low_w=18000,high_w=25000,dt_time=24):
         """ low_w is lower point of load power
             high_w is maximum point of load power
             dt_time is discretization of 24hour in to that form

@@ -32,11 +32,11 @@ class Learn_set():
             self.agents[name]["group_name"]=g_name
             self.agents[name]["name"]=group[l]
             self.agents[name]["grid"]=0
-            input_len=5
+            input_len=7
             action_len=2
             for gm in range(len(group[l])):
                 policy=group[l][gm]+"Policy"
-                self.agents[name][policy]=Policy(input_len,action_len,group[l][gm])
+                self.agents[name][policy]=Policy(input_len,action_len,group[l][gm],test=False)
         self.run(env)
 
     def run(self,env,train=True):
@@ -46,7 +46,7 @@ class Learn_set():
         """
         start=time.time()
         env.train = True
-        env.run_steps =5000
+        env.run_steps =400
         env.hour_max = 24
         for k in range(env.run_steps):
 
@@ -69,8 +69,9 @@ class Learn_set():
                         input,action=self.get_action(agent,ags,env)
                         next_s,reward=self.get_renex(agent,ags,env)
                         g_reward=self.cal_greward(env,learn_agent)
+
                         policy.learn_act(input,reward,next_s,env.done,g_reward)
-                        if k+1==env.run_steps and j+1==24:
+                        if k+1>env.run_steps-5 and j+1==24:
                             policy.save_model()
                         # if j+1==24:
                         #     print(" steps",k,"  agent ",ags," reward ",reward)
@@ -108,6 +109,14 @@ class Learn_set():
         #avg_grid and time
         data.append(self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)
         data.append((env.hour))
+        if data[1]>1:
+            data.append(1)
+        else:
+            data.append(0)
+        if data[1]<data[2]:
+            data.append(0)
+        else:
+            data.append(-1)
         data=np.reshape(data,[1,len(data)])
         data[np.isnan(data)] = 0
         return data
@@ -115,6 +124,17 @@ class Learn_set():
 
     #Todo
     def get_action(self,agents,agent,env):
+        """implement the data to get the action
+        group data to get group action
+        """
+        agent_len=len(self.agents[agents]["name"])
+        data=self.set_input(agent_len,agent,env)
+        policy=agent+"Policy"
+        action=self.agents[agents][policy].choose_action(data)
+        self.implement_action(agent,env,action)
+        return data,action
+    
+    def get_l_action(self,agents,agent,env):
         """implement the data to get the action
         group data to get group action
         """
@@ -136,8 +156,9 @@ class Learn_set():
         """
         agent_len=len(self.agents[agents]["name"])
         reward=self.cal_ireward(agent_len,agents,agent,env)
-        next_state=self.cal_next_state(agent_len,agent,env)
-        return next_state,reward
+        data=self.cal_next_state(agent_len,agent,env)
+        
+        return data,reward
 
     def cal_next_state(self,times,agent,env):
         hour=env.next_hour
@@ -148,6 +169,14 @@ class Learn_set():
         #grid_avg and time
         data.append(self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)
         data.append((env.next_hour))
+        if data[1]>1:
+            data.append(1)
+        else:
+            data.append(0)
+        if data[1]<data[2]:
+            data.append(0)
+        else:
+            data.append(-1)
         data=np.reshape(data,[1,len(data)])
         data[np.isnan(data)] = 0
         return data
