@@ -46,7 +46,7 @@ class Learn_set():
         """
         start=time.time()
         env.train = True
-        env.run_steps =100
+        env.run_steps =5000
         env.hour_max = 24
         for k in range(env.run_steps):
 
