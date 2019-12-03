@@ -174,7 +174,7 @@ class Learn_set():
         used_grid=self.grid_sell_all_call(hour,name)
         if used_grid > usable_grid:
             env.done=True
-            g_reward=-10
+            g_reward=-1
         else:
             g_reward=0.1
         return g_reward
