@@ -120,12 +120,12 @@ class Policy(object):
 
     def choose_action(self, observation):
         act_obs=observation[0]
-        if act_obs[0] > act_obs[1]:
-            act_obs[0] = -1
-        if act_obs[1]<=1000 :
-            act_obs[1] = -1
-        if act_obs[0] < 0 :
-            act_obs[2] = -1
+        # if act_obs[0] > act_obs[1]:
+        #     act_obs[0] = -1
+        # if act_obs[1]<=1000 :
+        #     act_obs[1] = -1
+        # if act_obs[0] < 0 :
+        #     act_obs[2] = -1
         act_obs=[act_obs]
         self.action=None
         if np.random.rand()>= self.epsilon or not self.test :
@@ -138,12 +138,12 @@ class Policy(object):
 
     def learn_act(self,observation,reward,next_state,done,global_reward):
         act_obs=observation[0]
-        if act_obs[0]>act_obs[1]:
-            act_obs[0]=-1
-        if act_obs[0]<=1000 :
-            act_obs[1]=-1
-        if act_obs[0] < 0 :
-            act_obs[2] = -1
+        # if act_obs[0]>act_obs[1]:
+        #     act_obs[0]=-1
+        # if act_obs[0]<=1000 :
+        #     act_obs[1]=-1
+        # if act_obs[0] < 0 :
+        #     act_obs[2] = -1
         act_obs=[act_obs]
         self.Memory.pre_store(observation[0],reward,self.action,next_state[0],act_obs[0])
         if done :

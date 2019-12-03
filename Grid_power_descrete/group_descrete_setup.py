@@ -18,6 +18,7 @@ class Learn_set():
         """
         self.net=net
         self.reset=reset
+        self.total_groups=len([names for names in group])
         self.total_agents=len([name for names in group for name in names])
         env=Environment()
         self.actions=["ON","OFF"]
@@ -46,34 +47,27 @@ class Learn_set():
         """
         start=time.time()
         env.train = True
-        env.run_steps =500
+        env.run_steps =10000
         env.hour_max = 24
         for k in range(env.run_steps):
-
+            env.step=k
+            env.done=False
             for j in range(24):
                 env.hour = j
                 if j + 1 == env.hour_max:
                     env.done=True
                     env.next_hour = 0
                 else:
-                    env.done=False
                     env.next_hour = j + 1
 
                 for i in range(len(self.agents)):
                     agent="agent"+str(i)
-                    self.agents[agent]["grid"]=0
-                    learn_agent=list(self.agents[agent]["name"])
-                    learn_agent = random.sample(learn_agent, k=len(learn_agent))
-                    for ags in learn_agent:
-                        policy=self.agents[agent][ags+"Policy"]
-                        input,action=self.get_action(agent,ags,env)
-                        next_s,reward=self.get_renex(agent,ags,env)
-                        g_reward=self.cal_greward(env,learn_agent)
-
-                        policy.learn_act(input,reward,next_s,env.done,g_reward)
-                        if k+1>env.run_steps-5 and j+1==24:
-                            policy.save_model()
-
+                    self.get_action(agent,env)
+                    
+                    if k+1>env.run_steps-10 and j+1==env.hour_max:
+                        self.agents[agent]["Policy"].save_model()
+                    # if j+1==24:
+                    #     print(" steps",k,"  agent ",agent," reward ",reward)
                 if env.done:
                     print("episodes",k,"terminated at",j)
                     break
@@ -84,17 +78,17 @@ class Learn_set():
         self.save_dict_to_file(self.reward)
 
     def save_dict_to_file(self,dic):
-        f = open('dictdqn.txt','w')
+        f = open('dictddpg.txt','w')
         f.write(str(dic))
         f.close()
 
     def load_dict_from_file(self):
-        f = open('dictdqn.txt','r')
+        f = open('dictddpg.txt','r')
         data=f.read()
         f.close()
         return eval(data)
 
-    def set_input(self,times,agent,env):
+    def set_input(self,agent,env):
         """for hourly data set
          pv , storage , load
         load all agents members data from pv , storage , load
@@ -102,86 +96,80 @@ class Learn_set():
         """
         data=[]
         hour=env.hour
-        data.append(self.pv_data_set(hour,agent)/1000)
-        data.append(self.load_data_set(hour,agent)/1000)
-        data.append(self.storage_data_set(hour,agent)/1000)
+        assert agent in list(self.agents.keys())," the agent is not containt in the agents list"
+        names=self.agents[agent]["name"]
+        data.append(list(self.pv_data_set(hour,names)/1000))
+        data.append(list(self.load_data_set(hour,names)/1000))
+        data.append(list(self.storage_data_set(hour,names)/1000))
         #avg_grid and time
-        data.append(self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)
-        data.append((env.hour))
-        if data[1]>1:
-            data.append(1)
-        else:
-            data.append(0)
-        if data[1]<data[2]:
-            data.append(0)
-        else:
-            data.append(-1)
-        data=np.reshape(data,[1,len(data)])
+        data.append(list(self.get_data_copy(len(names),self.net.res_ext_grid.loc['Grid'][hour]/self.total_groups/1000)))
+        data.append(list(self.get_data_copy(len(names),(env.hour))))
+        data=list(itertools.chain(*data))
+        data=np.reshape(data,[5,-1])
         data[np.isnan(data)] = 0
         return data
 
 
-    #Todo
-    def get_action(self,agents,agent,env):
-        """implement the data to get the action
-        group data to get group action
+    def set_next_put(self,agent,env):
+        """for hourly data set
+         pv , storage , load
+        load all agents members data from pv , storage , load
+        return list of all data
         """
-        agent_len=len(self.agents[agents]["name"])
-        data=self.set_input(agent_len,agent,env)
-        policy=agent+"Policy"
-        action=self.agents[agents][policy].choose_action(data)
-        self.implement_action(agent,env,action)
-        return data,action
+        data=[]
+        hour=env.next_hour
+        assert agent in list(self.agents.keys())," the agent is not containt in the agents list"
+        names=self.agents[agent]["name"]
+        data.append(list(self.pv_data_set(hour,names)/1000))
+        data.append(list(self.load_data_set(hour,names)/1000))
+        data.append(list(self.storage_data_set(hour,names)/1000))
+        #avg_grid and time
+        data.append(list(self.get_data_copy(len(names),self.net.res_ext_grid.loc['Grid'][hour]/self.total_groups/1000)))
+        data.append(list(self.get_data_copy(len(names),(env.hour))))
+        data=list(itertools.chain(*data))
+        data=np.reshape(data,[5,-1])
+        data[np.isnan(data)] = 0
+        return data
 
-    def get_l_action(self,agents,agent,env):
+    def get_action(self,agent,env):
         """implement the data to get the action
         group data to get group action
         """
-        agent_len=len(self.agents[agents]["name"])
-        data=self.set_input(agent_len,agent,env)
-        policy=agent+"Policy"
-        action=self.agents[agents][policy].choose_action(data)
-        self.implement_action(agent,env,action)
-        return data,action
+        data=self.set_input(agent,env)
+        names=self.agents[agent]["name"]
+        grid_now=0
+        for index, name in np.ndenumerate(names):
+            use_data=[]
+            now=index[0]
+            policy=names[now]+"Policy"
+            demand_add=data[1]
+            grid_total=data[3,1]
+            if index[0]==0:
+                grid_now=grid_total
+            else:
+                t_grid_sell=self.grid_sell_call(names[now-1],env.hour)
+                grid_now=grid_now - t_grid_sell
+            use_data.append(sum(demand_add[now:]))
+            use_data.append(grid_now)
+            use_idata=list(data[:,now])
+            used_data=use_data+use_idata
+            used_data=np.reshape(used_data,[1,7])
+            action=self.agents[agent][policy].choose_action(used_data)
+            self.implement_action(names[now],env,action)
+            next_data=self.set_next_put(agent,env)
+            use_indata=list(next_data[:,now])
+            n_state=use_data+use_indata
+            n_state=np.reshape(n_state,[1,7])
+            reward=self.cal_ireward(agent,names[now],env)
+            g_reward=self.cal_greward(env,names)
+            self.agents[agent][policy].learn_act(used_data,reward,n_state,env.done,g_reward)
 
     def get_data_copy(self,leng,data):
         """to return the data as per length """
         return [data for i in range(leng)]
 
 
-    def get_renex(self,agents,agent,env):
-        """input as a agent which cotaint group name
-            return reward and next state
-        """
-        agent_len=len(self.agents[agents]["name"])
-        reward=self.cal_ireward(agent_len,agents,agent,env)
-        data=self.cal_next_state(agent_len,agent,env)
-
-        return data,reward
-
-    def cal_next_state(self,times,agent,env):
-        hour=env.next_hour
-        data=[]
-        data.append(self.pv_data_set(hour,agent)/1000)
-        data.append(self.load_data_set(hour,agent)/1000)
-        data.append(self.storage_data_set(hour,agent)/1000)
-        #grid_avg and time
-        data.append(self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)
-        data.append((env.next_hour))
-        if data[1]>1:
-            data.append(1)
-        else:
-            data.append(0)
-        if data[1]<data[2]:
-            data.append(0)
-        else:
-            data.append(-1)
-        data=np.reshape(data,[1,len(data)])
-        data[np.isnan(data)] = 0
-        return data
-
-
-    def cal_ireward(self,times,agents,agent,env):
+    def cal_ireward(self,agents,agent,env):
         """to return the reward"""
         #for individual reward
         hour=env.hour
@@ -202,7 +190,7 @@ class Learn_set():
         used_grid=self.grid_sell_all_call(hour,name)
         if used_grid > usable_grid:
             env.done=True
-            g_reward=-10
+            g_reward=-1
         else:
             g_reward=0.1
         return g_reward
@@ -229,13 +217,14 @@ class Learn_set():
             self.set_res_storage_2ld(env,st_2ld,agent)
             self.set_storage(env,agent)
 
+
     def pv_data_set(self,hour,name):
         """fro group data return
         each time step [hour]
         group member [name]
         return specific time step group members pv data
         """
-        return self.net.res_pv_production.at[name,hour]
+        return self.net.res_pv_production.loc[name][hour]
 
     def load_data_set(self,hour,name):
         """fro group data return
@@ -243,25 +232,19 @@ class Learn_set():
         group member [name]
         return specific time step group members load data
         """
-        return self.net.res_load_data.at[name,hour]
+        return self.net.res_load_data.loc[name][hour]
 
-    def storage_data_set(self,hour,name):
-        """fro group data return
-        each time step [hour]
-        but in net.res_storage_SOC there are "Hour-1" so convert in specific type
-        group member [name]
-        return specific time step group members storage data
-        """
-        Hour="Hour-"+str(hour)
-        return self.net.res_storage_N_SOC.at[name,Hour]
-
-    def pv_data_call(self,hour,name):
+    def grid_sell_call(self,name,hour):
         """fro group data return
         each time step [hour]
         group member [name]
         return specific time step all pv data
         """
-        return self.net.res_pv_production[hour][:]
+
+        Hour = "Hour-"+str(hour)
+        load_sell=self.net.res_ext_grid_2ld.loc[name][Hour]
+        st_sell=self.net.res_ext_grid_2st.loc[name][Hour]
+        return (np.sum(load_sell)+np.sum(st_sell))
 
     def grid_sell_all_call(self,hour,names):
         """fro group data return
@@ -274,16 +257,23 @@ class Learn_set():
         st_sell=self.net.res_ext_grid_2st.loc[names][Hour]
         return (np.sum(load_sell)+np.sum(st_sell))
 
-    def grid_sell_call(self,name,hour):
+    def storage_data_set(self,hour,name):
+        """fro group data return
+        each time step [hour]
+        but in net.res_storage_SOC there are "Hour-1" so convert in specific type
+        group member [name]
+        return specific time step group members storage data
+        """
+        Hour="Hour-"+str(hour)
+        return self.net.res_storage_N_SOC.loc[name][Hour]
+
+    def pv_data_call(self,hour,name):
         """fro group data return
         each time step [hour]
         group member [name]
         return specific time step all pv data
         """
-        Hour = "Hour-"+str(hour)
-        load_sell=self.net.res_ext_grid_2ld.loc[name][Hour]
-        st_sell=self.net.res_ext_grid_2st.loc[name][Hour]
-        return (load_sell+st_sell)
+        return self.net.res_pv_production[hour][:]
 
     def storage_data_call(self,hour,name):
         """fro group data return
@@ -320,7 +310,7 @@ class Learn_set():
         Hour="Hour-"+str(env.hour)
         self.net.res_pv_2sell.at[name,Hour]=data
         self.net.res_ext_grid_buy.at[name,Hour]=data
-    #todo
+
     def set_res_ext_grid_2ld(self,env, data,name):
         """to set the result to pv_res which set data to pv to load and load charge """
         Hour="Hour-"+str(env.hour)
@@ -334,7 +324,7 @@ class Learn_set():
         n_Hour="Hour-"+str(env.next_hour)
         self.net.res_storage.loc[name]['grid_charge']=data
         self.net.res_ext_grid_2st.at[name,Hour]=data
-    #todo
+
 
     def set_res_storage_2ld(self, env, data,name):
         """to set the result to pv_res which set data to pv to load and load charge """
@@ -398,6 +388,7 @@ class Learn_set():
                 st_4grid =0
                 st_4pv   =storage_need*dt
                 load_4grid=0
+
             elif (pv_over>0) and (pv_over < storage_need):
                 grid_buy=0
                 grid_sell=0
