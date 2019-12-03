@@ -119,18 +119,6 @@ class Policy(object):
             self._train_op = tf.train.AdamOptimizer(self.lr).minimize(self.loss)
 
     def choose_action(self, observation):
-<<<<<<< HEAD
-        act_obs=observation[:7]
-        # if act_obs[0] > act_obs[3]:
-        #     act_obs[0] = -1
-        # if act_obs[0]<=0 :
-        #     act_obs[0] = -1
-        # if act_obs[] > 0 :
-        #     act_obs[3] = 1
-        # act_obs=[act_obs]
-        self.action=None
-        if np.random.rand()>= self.epsilon and not self.test :
-=======
         act_obs=observation[0]
         if act_obs[0] > act_obs[1]:
             act_obs[0] = -1
@@ -141,7 +129,6 @@ class Policy(object):
         act_obs=[act_obs]
         self.action=None
         if np.random.rand()>= self.epsilon or not self.test :
->>>>>>> 27c855ca4f7bab014dd52f91aea485db5e4833d2
             actions_value = self.sess.run(self.q_eval, feed_dict={self.s: observation,self.s1:act_obs})
             action = np.argmax(actions_value)
         else:
@@ -150,16 +137,6 @@ class Policy(object):
         return self.action
 
     def learn_act(self,observation,reward,next_state,done,global_reward):
-<<<<<<< HEAD
-        act_obs=[0,0,0,0,0,0,0]
-        act_obs=observation[:7]
-        # if act_obs[0]>act_obs[3]:
-        #     act_obs[0]=-1
-        # if act_obs[0]<=0 :
-        #     act_obs[0]=-1
-        # if act_obs[6] > 0 :
-        #     act_obs[3] = 1
-=======
         act_obs=observation[0]
         if act_obs[0]>act_obs[1]:
             act_obs[0]=-1
@@ -168,7 +145,6 @@ class Policy(object):
         if act_obs[0] < 0 :
             act_obs[2] = -1
         act_obs=[act_obs]
->>>>>>> 27c855ca4f7bab014dd52f91aea485db5e4833d2
         self.Memory.pre_store(observation[0],reward,self.action,next_state[0],act_obs[0])
         if done :
             pre_memory=self.Memory.memo
