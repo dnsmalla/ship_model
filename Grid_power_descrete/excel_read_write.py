@@ -59,7 +59,11 @@ class Excel(object):
 
 class Load_gen(object):
 
+<<<<<<< HEAD
+    def __init__(self,low_w=500,high_w=1000,dt_time=24):
+=======
     def __init__(self,low_w=1000,high_w=2000,dt_time=24):
+>>>>>>> 27c855ca4f7bab014dd52f91aea485db5e4833d2
         """ low_w is lower point of load power
             high_w is maximum point of load power
             dt_time is discretization of 24hour in to that form
@@ -187,7 +191,11 @@ class Storage_gen(object):
 
 class Grid_gen(object):
 
+<<<<<<< HEAD
+    def __init__(self,pw_type=3,low_w=20000,high_w=25000,dt_time=24):
+=======
     def __init__(self,pw_type=3,low_w=18000,high_w=25000,dt_time=24):
+>>>>>>> 27c855ca4f7bab014dd52f91aea485db5e4833d2
         """ low_w is lower point of load power
             high_w is maximum point of load power
             dt_time is discretization of 24hour in to that form

@@ -1,6 +1,10 @@
 from  data_control import Data_intialize
 from learn_setup_qlearn0 import Learn_set
+<<<<<<< HEAD
+from test_qlearn0 import Test_dqn
+=======
 from test_dqn import Test_dqn
+>>>>>>> 27c855ca4f7bab014dd52f91aea485db5e4833d2
 from network import *
 from circuit_plot import create_schem
 
