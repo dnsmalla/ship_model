@@ -47,7 +47,7 @@ class Learn_set():
         """
         start=time.time()
         env.train = True
-        env.run_steps =5
+        env.run_steps =500
         env.hour_max = 24
         for k in range(env.run_steps):
             env.step=k
@@ -63,7 +63,7 @@ class Learn_set():
                 for i in range(len(self.agents)):
                     agent="agent"+str(i)
                     self.get_action(agent,env)
-                     
+
                     if k+1>env.run_steps-10 and j+1==env.hour_max:
                         names=names=self.agents[agent]["name"]
                         for now in range(len(names)):
