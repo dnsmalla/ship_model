@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 class Test_group():
     """to set up the learning models and network environment"""
 
-    def __init__(self,net,group):
+    def __init__(self,net,group,reset):
         """agent set up for group learning
             agents name =agent+group_count
             agents[name]["name"]=agents in the group
@@ -23,6 +23,7 @@ class Test_group():
         self.all_names=[name for names in group for name in names]
         env=Environment()
         self.actions=["ON","OFF"]
+        reset(self.net)
         assert len(self.net.res_pv)==len(self.net.pv),"learning setup need res setup! import and setup data control "
         assert isinstance(group, list),"groput need to be list"
         self.agents={}
@@ -379,8 +380,8 @@ class Test_group():
         """get data and return data  """
 
         action=self.actions[action]
-        print("this is action",action)
-        print("storage_max,storage_min,soc,pv,load,action,hour",storage_max,storage_min,soc,pv,load,action,hour)
+        # print("this is action",action)
+        # print("storage_max,storage_min,soc,pv,load,action,hour",storage_max,storage_min,soc,pv,load,action,hour)
         grid_buy =0
         grid_sell=0
         pv_2sell =0
@@ -390,12 +391,15 @@ class Test_group():
         st_4grid =0
         st_4pv   =0
         load_4grid=0
-        if (storage_max - soc) > 2000*dt:
-            storage_need=2000*dt
-        else:
-            storage_need=2000*dt
 
-        if soc >storage_min:
+        if (storage_max - soc) > 2000*dt :
+            storage_need=2000*dt
+        elif storage_max <= soc:
+            storage_need=0
+        else:
+            storage_need=(storage_max - soc)*dt
+
+        if soc > storage_min and storage_max>soc:
             storage_dischargeable=(soc-storage_min)*dt
         else:
             storage_dischargeable=0
@@ -444,7 +448,6 @@ class Test_group():
             elif storage_dischargeable>0 and storage_dischargeable<pv_nfill:
                 grid_buy=0
                 grid_sell=load-storage_dischargeable*dt
-                print(grid_sell,load,storage_dischargeable)
                 pv_2sell =0
                 pv_2st   =0
                 pv_2ld   =pv
@@ -487,13 +490,13 @@ class Test_group():
                 st_4pv   =0
                 load_4grid=load-pv
 
-        print("grid_buy",grid_buy)
-        print("grid_sell",grid_sell)
-        print("pv_2sell",pv_2sell)
-        print("pv_2st",pv_2st)
-        print("pv_2ld",pv_2ld)
-        print("st_2ld",st_2ld)
-        print("st_4grid",st_4grid)
-        print("st_4pv",st_4pv)
-        print("load_4grid",load_4grid)
+        # print("grid_buy",grid_buy)
+        # print("grid_sell",grid_sell)
+        # print("pv_2sell",pv_2sell)
+        # print("pv_2st",pv_2st)
+        # print("pv_2ld",pv_2ld)
+        # print("st_2ld",st_2ld)
+        # print("st_4grid",st_4grid)
+        # print("st_4pv",st_4pv)
+        # print("load_4grid",load_4grid)
         return  grid_buy,grid_sell,pv_2sell,pv_2st,pv_2ld,st_2ld,st_4grid,st_4pv,load_4grid

@@ -370,12 +370,16 @@ class Learn_set():
         st_4grid =0
         st_4pv   =0
         load_4grid=0
-        if (storage_max - soc) > 2000*dt:
-            storage_need=2000*dt
-        else:
-            storage_need=2000*dt
 
-        if soc >storage_min:
+        
+        if (storage_max - soc) > 2000*dt :
+            storage_need=2000*dt
+        elif storage_max <= soc:
+            storage_need=0
+        else:
+            storage_need=(storage_max - soc)*dt
+
+        if soc > storage_min and storage_max>soc:
             storage_dischargeable=(soc-storage_min)*dt
         else:
             storage_dischargeable=0
