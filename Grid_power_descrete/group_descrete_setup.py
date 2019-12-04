@@ -193,7 +193,7 @@ class Learn_set():
         used_grid=self.grid_sell_all_call(hour,name)
         if used_grid > usable_grid:
             env.done=True
-            g_reward=-1
+            g_reward=-10
         else:
             g_reward=0.1
         return g_reward
@@ -349,7 +349,10 @@ class Learn_set():
 
     def balance(self,storage_max,storage_min,soc,pv,load,action,hour,dt=1):
         """get data and return data  """
+        
         action=self.actions[action]
+        # print("action",action)
+        # print("storage_max,storage_min,soc,pv,load,action,hour",storage_max,storage_min,soc,pv,load,action,hour)
         grid_buy =0
         grid_sell=0
         pv_2sell =0
@@ -405,7 +408,7 @@ class Learn_set():
                 pv_2sell =0
                 pv_2st   =0
                 pv_2ld   =pv
-                st_2ld   =load-(pv_nfill*dt)
+                st_2ld   =pv_nfill*dt
                 st_4grid =0
                 st_4pv   =0
                 load_4grid=0
@@ -454,5 +457,13 @@ class Learn_set():
                 st_4grid =0
                 st_4pv   =0
                 load_4grid=load-pv
-
+        # print("grid_buy",grid_buy)
+        # print("grid_sell",grid_sell)
+        # print("pv_2sell",pv_2sell)
+        # print("pv_2st",pv_2st)
+        # print("pv_2ld",pv_2ld)
+        # print("st_2ld",st_2ld)
+        # print("st_4grid",st_4grid)
+        # print("st_4pv",st_4pv)
+        # print("load_4grid",load_4grid)
         return  grid_buy,grid_sell,pv_2sell,pv_2st,pv_2ld,st_2ld,st_4grid,st_4pv,load_4grid

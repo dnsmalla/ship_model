@@ -69,7 +69,10 @@ class Test_ddpg():
                 if env.done:
                     print("terminated at",j)
                     break
-            self.plot_data()
+            print(self.load_dict_from_file())
+            plt.plot(self.load_dict_from_file().values())
+            plt.show()
+            self.plot_data(sow=True)
 
     def plot_data(self,sow=False):
         for i in range(len(self.agents)):

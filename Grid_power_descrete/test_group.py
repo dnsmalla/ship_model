@@ -20,6 +20,7 @@ class Test_group():
         self.net=net
         self.total_groups=len([names for names in group])
         self.total_agents=len([name for names in group for name in names])
+        self.all_names=[name for names in group for name in names]
         env=Environment()
         self.actions=["ON","OFF"]
         assert len(self.net.res_pv)==len(self.net.pv),"learning setup need res setup! import and setup data control "
@@ -75,8 +76,35 @@ class Test_group():
                     print("episodes",k,"terminated at",j)
                     break
 
-        print(self.load_dict_from_file())
-        plt.plot(self.load_dict_from_file().values())
+        self.plot_data(sow=True)
+
+    def plot_data(self,sow=False):
+        
+        for i in range(len(self.agents)):
+            agent="agent"+str(i) 
+            names=self.agents[agent]["name"]
+            datas=self.net.res_storage_N_SOC.loc[names][:]
+            load_data=(sum(list(self.net.res_load_data.loc[names][:].values)))
+            pv_data=(sum(list(self.net.res_pv_production.loc[names][:].values)))
+            grid_available=self.net.res_ext_grid.loc['Grid'][:]/self.total_groups
+            if sow:
+                plt.plot(datas.T)
+                plt.show()
+                plt.plot(load_data)
+                plt.plot(pv_data)
+                plt.plot(grid_available.T)
+                plt.show()
+            else:
+                plt.plot(datas.T)
+                plt.title(agent)
+                plt.savefig("plot_result/"+agent + '.png')
+                
+        all_load_data=(sum(list(self.net.res_load_data.loc[self.all_names][:].values)))
+        all_pv_data=(sum(list(self.net.res_pv_production.loc[self.all_names][:].values)))
+        all_grid_available=self.net.res_ext_grid.loc['Grid'][:]
+        plt.plot(all_load_data)
+        plt.plot(all_pv_data)
+        plt.plot(all_grid_available.T)
         plt.show()
 
     def save_dict_to_file(self,dic):
@@ -190,6 +218,7 @@ class Test_group():
         hour=env.hour
         usable_grid=self.net.res_ext_grid.loc['Grid'][hour]/len(name)
         used_grid=self.grid_sell_all_call(hour,name)
+        print("used_grid,usable",hour,name,used_grid,usable_grid)
         if used_grid > usable_grid:
             env.done=True
             g_reward=-1
@@ -348,11 +377,10 @@ class Test_group():
 
     def balance(self,storage_max,storage_min,soc,pv,load,action,hour,dt=1):
         """get data and return data  """
-        if action>0:
-            action=1
-        else:
-            action=0
+
         action=self.actions[action]
+        print("this is action",action)
+        print("storage_max,storage_min,soc,pv,load,action,hour",storage_max,storage_min,soc,pv,load,action,hour)
         grid_buy =0
         grid_sell=0
         pv_2sell =0
@@ -408,7 +436,7 @@ class Test_group():
                 pv_2sell =0
                 pv_2st   =0
                 pv_2ld   =pv
-                st_2ld   =load-(pv_nfill*dt)
+                st_2ld   =pv_nfill*dt
                 st_4grid =0
                 st_4pv   =0
                 load_4grid=0
@@ -416,6 +444,7 @@ class Test_group():
             elif storage_dischargeable>0 and storage_dischargeable<pv_nfill:
                 grid_buy=0
                 grid_sell=load-storage_dischargeable*dt
+                print(grid_sell,load,storage_dischargeable)
                 pv_2sell =0
                 pv_2st   =0
                 pv_2ld   =pv
@@ -458,4 +487,13 @@ class Test_group():
                 st_4pv   =0
                 load_4grid=load-pv
 
+        print("grid_buy",grid_buy)
+        print("grid_sell",grid_sell)
+        print("pv_2sell",pv_2sell)
+        print("pv_2st",pv_2st)
+        print("pv_2ld",pv_2ld)
+        print("st_2ld",st_2ld)
+        print("st_4grid",st_4grid)
+        print("st_4pv",st_4pv)
+        print("load_4grid",load_4grid)
         return  grid_buy,grid_sell,pv_2sell,pv_2st,pv_2ld,st_2ld,st_4grid,st_4pv,load_4grid
