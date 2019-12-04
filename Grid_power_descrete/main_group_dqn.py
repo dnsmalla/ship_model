@@ -62,13 +62,13 @@ net.create_line(bus15,bus16,length_km=1,direct="left",theta=180)
 #create_schem(net)
 #definde group for learning
 print(net.net)
-group1=[h1,h2,h4]
-group2=[h5,h6,h8]
+group1=[h1,h2,h3,h4]
+group2=[h5,h6,h7,h8]
 group3=[h9,h10,h11,h12]
 group4=[h13,h14,h15,h16]
 
 groups=[group1,group2,group3,group4]
 data=Data_intialize(net.net)
-ls=Learn_set(net.net,groups,Data_intialize)
-#ts= Test_group(net.net,groups)
+#ls=Learn_set(net.net,groups,Data_intialize)
+ts= Test_group(net.net,groups)
 # create_schem(net)

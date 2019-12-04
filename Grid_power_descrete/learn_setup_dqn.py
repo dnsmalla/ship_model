@@ -46,7 +46,7 @@ class Learn_set():
         """
         start=time.time()
         env.train = True
-        env.run_steps =400
+        env.run_steps =50000
         env.hour_max = 24
         for k in range(env.run_steps):
 
@@ -76,7 +76,7 @@ class Learn_set():
                         # if j+1==24:
                         #     print(" steps",k,"  agent ",ags," reward ",reward)
                 if env.done:
-                    print("episodes",k,"terminated at",j)
+                    print("dqn_episodes",k,"terminated at",j)
                     break
             self.reward[str(k)]=j
             self.reset(self.net)
@@ -357,11 +357,9 @@ class Learn_set():
 
     def balance(self,storage_max,storage_min,soc,pv,load,action,hour,dt=1):
         """get data and return data  """
-        if action>0:
-            action=1
-        else:
-            action=0
         action=self.actions[action]
+        # print("action",action)
+        # print("storage_max,storage_min,soc,pv,load,action,hour",storage_max,storage_min,soc,pv,load,action,hour)
         grid_buy =0
         grid_sell=0
         pv_2sell =0
@@ -399,6 +397,7 @@ class Learn_set():
                 st_4grid =0
                 st_4pv   =storage_need*dt
                 load_4grid=0
+
             elif (pv_over>0) and (pv_over < storage_need):
                 grid_buy=0
                 grid_sell=0
@@ -416,7 +415,7 @@ class Learn_set():
                 pv_2sell =0
                 pv_2st   =0
                 pv_2ld   =pv
-                st_2ld   =load-(pv_nfill*dt)
+                st_2ld   =pv_nfill*dt
                 st_4grid =0
                 st_4pv   =0
                 load_4grid=0
@@ -465,5 +464,13 @@ class Learn_set():
                 st_4grid =0
                 st_4pv   =0
                 load_4grid=load-pv
-
+        # print("grid_buy",grid_buy)
+        # print("grid_sell",grid_sell)
+        # print("pv_2sell",pv_2sell)
+        # print("pv_2st",pv_2st)
+        # print("pv_2ld",pv_2ld)
+        # print("st_2ld",st_2ld)
+        # print("st_4grid",st_4grid)
+        # print("st_4pv",st_4pv)
+        # print("load_4grid",load_4grid)
         return  grid_buy,grid_sell,pv_2sell,pv_2st,pv_2ld,st_2ld,st_4grid,st_4pv,load_4grid

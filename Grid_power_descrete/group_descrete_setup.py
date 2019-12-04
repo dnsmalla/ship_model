@@ -47,7 +47,7 @@ class Learn_set():
         """
         start=time.time()
         env.train = True
-        env.run_steps =1000
+        env.run_steps =2000
         env.hour_max = 24
         for k in range(env.run_steps):
             env.step=k
@@ -72,7 +72,7 @@ class Learn_set():
                     # if j+1==24:
                     #     print(" steps",k,"  agent ",agent," reward ",reward)
                 if env.done:
-                    print("episodes",k,"terminated at",j)
+                    print("group_episodes",k,"terminated at",j)
                     break
             self.reward[str(k)]=j
             self.reset(self.net)
@@ -193,7 +193,7 @@ class Learn_set():
         used_grid=self.grid_sell_all_call(hour,name)
         if used_grid > usable_grid:
             env.done=True
-            g_reward=-10
+            g_reward=-1
         else:
             g_reward=0.1
         return g_reward

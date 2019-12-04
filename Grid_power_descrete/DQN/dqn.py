@@ -88,13 +88,13 @@ class Policy:
 
 
     def save_model(self):
-        path="./model_save/"
+        path="./dqn_model_save/"
         if not os.path.exists(path):
             os.makedirs(path)
-        path="./model_save/"+self.name
+        path="./dqn_model_save/"+self.name
         self.agent.save(path+".h5")
 
 
     def test_model(self):
-        path="./model_save/"+self.name
+        path="./dqn_model_save/"+self.name
         self.agent.load(path+".h5")

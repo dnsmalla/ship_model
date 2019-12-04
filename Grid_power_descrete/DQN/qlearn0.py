@@ -174,7 +174,7 @@ class Policy(object):
     def save_model(self):
         name = self.name
         print(name)
-        path = "./model_save/" + name
+        path = "./GDqn_model_save/" + name
         if not os.path.exists(path):
             os.makedirs(path)
         else:
@@ -184,5 +184,5 @@ class Policy(object):
 
     def test_model(self):
         name = self.name
-        path = "./model_save/"
+        path = "./GDqn_model_save/"
         self.saver.restore(self.sess, path + name + "/model.ckpt")
