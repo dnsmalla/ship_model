@@ -9,7 +9,7 @@ class Memory:
     def __init__(self, capacity, dims):
         self.cap=capacity
         self.capacity = np.zeros((capacity, dims))
-        self.memo=deque(maxlen=96)
+        self.memo=deque(maxlen=24)
         self.memory_counter  = 0
         self.t_memory=0
 
@@ -119,12 +119,14 @@ class Policy(object):
 
     def choose_action(self, observation):
         act_obs=observation[0]
-        # if act_obs[0] > act_obs[1]:
-        #     act_obs[0] = -1
-        # if act_obs[1]<=1000 :
-        #     act_obs[1] = -1
-        # if act_obs[0] < 0 :
-        #     act_obs[2] = -1
+        if act_obs[0] > act_obs[1]:
+            act_obs[0] = -1
+        if act_obs[0] > 0:
+            act_obs[0] = -10
+        if act_obs[1]<=1000 :
+            act_obs[1] = -1
+        if act_obs[0] < 0 :
+            act_obs[2] = -1
         act_obs=[act_obs]
         self.action=None
         if np.random.rand()>= self.epsilon or not self.test :
@@ -137,17 +139,19 @@ class Policy(object):
 
     def learn_act(self,observation,reward,next_state,done,global_reward):
         act_obs=observation[0]
-        # if act_obs[0]>act_obs[1]:
-        #     act_obs[0]=-1
-        # if act_obs[0]<=1000 :
-        #     act_obs[1]=-1
-        # if act_obs[0] < 0 :
-        #     act_obs[2] = -1
+        if act_obs[0]>act_obs[1]:
+            act_obs[0]=-1
+        if act_obs[0] > 0:
+            act_obs[0] = -10
+        if act_obs[0]<=1000 :
+            act_obs[1]=-1
+        if act_obs[0] < 0 :
+            act_obs[2] = -1
         act_obs=[act_obs]
         self.Memory.pre_store(observation[0],reward,self.action,next_state[0],act_obs[0])
         if done :
             pre_memory=self.Memory.memo
-            self.Memory.memo=deque(maxlen=96)
+            self.Memory.memo=deque(maxlen=24)
             for state,re,action,next_state,mask in pre_memory:
                 rewards=re+global_reward
                 self.Memory.store(state,action,rewards,next_state,mask)
