@@ -75,7 +75,7 @@ class Test_group():
                 for i in range(len(self.agents)):
                     agent="agent"+str(i)
                     self.get_action(agent,env)
-
+                self.terminal_trig(env)
                 if env.done:
                     print("group_episodes",k,"terminated at",j)
                     break
@@ -224,11 +224,17 @@ class Test_group():
         usable_grid=self.net.res_ext_grid.loc['Grid'][hour]/len(name)
         used_grid=self.grid_sell_all_call(hour,name)
         if used_grid > usable_grid:
-            env.done=True
             g_reward=-1
         else:
             g_reward=0.1
         return g_reward
+    
+    def terminal_trig(self,env):
+        hour=env.hour
+        usable_grid=self.net.res_ext_grid.loc['Grid'][hour]
+        used_grid=self.grid_sell_all_call(hour,self.all_names)
+        if used_grid > usable_grid:
+            env.done=True
 
     def implement_action(self,agent,env,action):
         """implement action
@@ -372,7 +378,10 @@ class Test_group():
     def set_storage(self,env,name):
         """to set the soc value to the storage new state"""
         Hour="Hour-"+str(env.hour)
-        n_Hour="Hour-"+str(env.next_hour)
+        if env.next_hour==0:
+            n_Hour="Hour-"+str(env.hour+1)
+        else:
+            n_Hour="Hour-"+str(env.next_hour)
         self.net.res_storage_charge.at[name,Hour]=0.0
         self.net.res_storage_charge.at[name,Hour]=self.net.res_pv_2st.at[name,Hour]+self.net.res_ext_grid_2st.at[name,Hour]
         self.net.res_storage_N_SOC.at[name,n_Hour]=0.0

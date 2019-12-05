@@ -17,11 +17,9 @@ class Data_intialize():
         assert os.path.exists, "file does not exit"
         assert os.path.splitext(data_file)[1]=='.xlsx', "file need to be name.xlsx"
         self.file=data_file 
-        self.reset_results()
-        self.upload_data()
+        self.reset_results(suffix=None)
+        self.upload_data(random=True)
 
-
-    #TODO
     def upload_data(self,random=True):
         """ to setup the data for group """
         if random:
@@ -100,7 +98,6 @@ class Data_intialize():
         self.set_storage_res()
         self.set_ext_grid_res()
         self.set_load_data_res()
-        
 
     def set_pv_res(self):
         self.net["res_pv"]["name"]=self.net["load"]["name"]

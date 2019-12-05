@@ -342,7 +342,10 @@ class Learn_set():
     def set_storage(self,env,name):
         """to set the soc value to the storage new state"""
         Hour="Hour-"+str(env.hour)
-        n_Hour="Hour-"+str(env.next_hour)
+        if env.next_hour==0:
+            n_Hour="Hour-"+str(env.hour+1)
+        else:
+            n_Hour="Hour-"+str(env.next_hour)
         self.net.res_storage_charge.at[name,Hour]=0.0
         self.net.res_storage_charge.at[name,Hour]=self.net.res_pv_2st.at[name,Hour]+self.net.res_ext_grid_2st.at[name,Hour]
         self.net.res_storage_N_SOC.at[name,n_Hour]=0.0

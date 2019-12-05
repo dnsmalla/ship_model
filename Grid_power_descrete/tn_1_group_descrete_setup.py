@@ -23,6 +23,7 @@ class Learn_set():
         self.memory_size=20000
         self.total_groups=len([names for names in group])
         self.total_agents=len([name for names in group for name in names])
+        self.all_names=[name for names in group for name in names]
         env=Environment()
         self.actions=["ON","OFF"]
         assert len(self.net.res_pv)==len(self.net.pv),"learning setup need res setup! import and setup data control "
@@ -57,6 +58,7 @@ class Learn_set():
             env.step=k
             env.done=False
             for j in range(24):
+                
                 env.hour = j
                 if j + 1 == env.hour_max:
                     env.done=True
@@ -73,8 +75,8 @@ class Learn_set():
                         for now in range(len(names)):
                             policy=names[now]+"Policy"
                             self.agents[agent][policy].save_model()
-                    # if j+1==24:
-                    #     print(" steps",k,"  agent ",agent," reward ",reward)
+                
+                self.terminal_trig(env)
                 if env.done:
                     print("tn_1_group_episodes",k,"terminated at",j)
                     break
@@ -199,11 +201,17 @@ class Learn_set():
         usable_grid=self.net.res_ext_grid.loc['Grid'][hour]/len(name)
         used_grid=self.grid_sell_all_call(hour,name)
         if used_grid > usable_grid:
-            env.done=True
             g_reward=-1
         else:
             g_reward=0.1
         return g_reward
+
+    def terminal_trig(self,env):
+        hour=env.hour
+        usable_grid=self.net.res_ext_grid.loc['Grid'][hour]
+        used_grid=self.grid_sell_all_call(hour,self.all_names)
+        if used_grid > usable_grid:
+            env.done=True
 
     def implement_action(self,agent,env,action):
         """implement action
@@ -347,7 +355,10 @@ class Learn_set():
     def set_storage(self,env,name):
         """to set the soc value to the storage new state"""
         Hour="Hour-"+str(env.hour)
-        n_Hour="Hour-"+str(env.next_hour)
+        if env.next_hour==0:
+            n_Hour="Hour-"+str(env.hour+1)
+        else:
+            n_Hour="Hour-"+str(env.next_hour)
         self.net.res_storage_charge.at[name,Hour]=0.0
         self.net.res_storage_charge.at[name,Hour]=self.net.res_pv_2st.at[name,Hour]+self.net.res_ext_grid_2st.at[name,Hour]
         self.net.res_storage_N_SOC.at[name,n_Hour]=0.0

@@ -245,7 +245,7 @@ Net={
                                 ("Hour-0", "f8"),("Hour-1", "f8"),("Hour-2", "f8"),("Hour-3", "f8"),("Hour-4", "f8"),("Hour-5", "f8"),("Hour-6", "f8"),
                                    ("Hour-7", "f8"),("Hour-8", "f8"),("Hour-9", "f8"),("Hour-10", "f8"),("Hour-11", "f8"),("Hour-12", "f8"),("Hour-13", "f8"),
                                     ("Hour-14", "f8"),("Hour-15", "f8"),("Hour-16", "f8"),("Hour-17", "f8"),("Hour-18", "f8"),("Hour-19", "f8"),("Hour-20", "f8"),
-                                    ("Hour-21", "f8"),("Hour-22", "f8"),("Hour-23", "f8")], 
+                                    ("Hour-21", "f8"),("Hour-22", "f8"),("Hour-23", "f8"),("Hour-24", "f8")], 
 
         # internal
         "_ppc": None,
