@@ -4,35 +4,6 @@ import numpy as np
 import tensorflow as tf
 from collections import deque
 
-
-class Memory:
-    def __init__(self, capacity, dims):
-        self.cap=capacity
-        self.capacity = np.zeros((capacity, dims))
-        self.memo=deque(maxlen=96)
-        self.memory_counter  = 0
-        self.t_memory=0
-
-    def pre_store(self,s,r,a,s_,mask):
-        self.memo.append((s,r,a,s_,mask))
-
-    def store(self, s,r,a,s_,mask):
-        if self.memory_counter==self.cap:
-            self.memory_counter = 0
-        transition = np.hstack((s,r,a,s_,mask))
-        index = self.memory_counter % self.cap
-        self.capacity[index, :] = transition
-        self.memory_counter += 1
-        if self.t_memory<=self.cap-1:
-            self.t_memory+=1
-        else:
-            self.t_memory=self.cap-1
-
-    def sample(self, n):
-        if len(self.capacity) > n:
-            indices = np.random.choice(self.t_memory, size=n)
-        return self.capacity[indices, :]
-
 class Policy(object):
     def __init__(self, state_size, action_size,name,test=False):
         tf.reset_default_graph()
@@ -40,7 +11,6 @@ class Policy(object):
         self.n_actions = action_size
         self.name=name
         self.test=test
-        self.memory_size =5000
         self.gamma = 0.95    # discount rate
         self.epsilon = 1  # exploration rate
         self.epsilon_min = 0.01
@@ -60,7 +30,6 @@ class Policy(object):
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
         self.cost_his = []
-        self.Memory = Memory(self.memory_size, self.n_features * 2 + 9)
         self.saver=tf.train.Saver()
 
     def _build_net(self):
@@ -137,7 +106,7 @@ class Policy(object):
         self.action=action
         return self.action
 
-    def learn_act(self,observation,reward,next_state,done,global_reward):
+    def learn_act(self,observation,reward,next_state,done,global_reward, Memory):
         act_obs=observation[0]
         if act_obs[0] > act_obs[1]:
             act_obs[0] = -1
@@ -148,16 +117,16 @@ class Policy(object):
         if act_obs[0] < 0 :
             act_obs[2] = -1
         act_obs=[act_obs]
-        self.Memory.pre_store(observation[0],reward,self.action,next_state[0],act_obs[0])
+        Memory.pre_store(observation[0],reward,self.action,next_state[0],act_obs[0])
         if done :
-            pre_memory=self.Memory.memo
-            self.Memory.memo=deque(maxlen=96)
+            pre_memory=Memory.memo
+            Memory.memo=deque(maxlen=96)
             for state,re,action,next_state,mask in pre_memory:
                 rewards=re+global_reward
-                self.Memory.store(state,action,rewards,next_state,mask)
+                Memory.store(state,action,rewards,next_state,mask)
 
-        if self.batch<self.Memory.t_memory:
-            batch_memory=self.Memory.sample(self.batch)
+        if self.batch<Memory.t_memory:
+            batch_memory=Memory.sample(self.batch)
             _, cost = self.sess.run(
                 [self._train_op, self.loss],
                 feed_dict={
