@@ -3,6 +3,7 @@ import numpy as np
 import itertools
 import time
 import random
+import copy
 from environments import Environment
 from DQN.q_single_target import Policy
 from buffer import Memory
