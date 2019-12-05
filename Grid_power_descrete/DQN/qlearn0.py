@@ -121,7 +121,7 @@ class Policy(object):
         act_obs=observation[0]
         if act_obs[0] > act_obs[1]:
             act_obs[0] = -1
-        if act_obs[0] > 0:
+        if act_obs[0] == 0:
             act_obs[0] = -10
         if act_obs[1]<=1000 :
             act_obs[1] = -1
@@ -141,7 +141,7 @@ class Policy(object):
         act_obs=observation[0]
         if act_obs[0] > act_obs[1]:
             act_obs[0] = -1
-        if act_obs[0] > 0:
+        if act_obs[0] == 0:
             act_obs[0] = -10
         if act_obs[1]<=1000 :
             act_obs[1] = -1
