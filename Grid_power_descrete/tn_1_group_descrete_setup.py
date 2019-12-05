@@ -75,7 +75,7 @@ class Learn_set():
                     # if j+1==24:
                     #     print(" steps",k,"  agent ",agent," reward ",reward)
                 if env.done:
-                    print("group_episodes",k,"terminated at",j)
+                    print("tn_1_group_episodes",k,"terminated at",j)
                     break
             self.reward[str(k)]=j
             self.reset(self.net)
