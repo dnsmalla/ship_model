@@ -154,14 +154,15 @@ class Learn_set():
             if index[0]==0:
                 grid_now=grid_total
             else:
-                t_grid_sell=self.grid_sell_call(names[now-1],env.hour)
+                t_grid_sell=self.grid_sell_call(names[now-1],env.hour)/1000
                 grid_now=grid_now - t_grid_sell
             use_data.append(sum(demand_add[now:]))
             use_data.append(grid_now)
             use_idata=list(data[:,now])
             used_data=use_data+use_idata
             used_data=np.reshape(used_data,[1,7])
-            action=self.agents[agent][policy].choose_action(used_data)
+            state=copy.copy(used_data)
+            action=self.agents[agent][policy].choose_action(state)
             self.implement_action(names[now],env,action)
             next_data=self.set_next_put(agent,env)
             use_indata=list(next_data[:,now])
@@ -170,6 +171,7 @@ class Learn_set():
             reward=self.cal_ireward(agent,names[now],env)
             g_reward=self.cal_greward(env,names)
             self.agents[agent][policy].learn_act(used_data,reward,n_state,env.done,g_reward,memory)
+
 
     def get_data_copy(self,leng,data):
         """to return the data as per length """

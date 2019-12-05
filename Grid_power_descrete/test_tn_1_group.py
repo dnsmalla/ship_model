@@ -3,9 +3,11 @@ import numpy as np
 import itertools
 import time
 import random
+import copy
 from environments import Environment
 from DQN.q_single_target import Policy
 from buffer import Memory
+import matplotlib.pyplot as plt
 
 class Test_group():
     """to set up the learning models and network environment"""
@@ -22,6 +24,7 @@ class Test_group():
         self.memory_size=20000
         self.total_groups=len([names for names in group])
         self.total_agents=len([name for names in group for name in names])
+        self.all_names=[name for names in group for name in names]
         env=Environment()
         self.actions=["ON","OFF"]
         assert len(self.net.res_pv)==len(self.net.pv),"learning setup need res setup! import and setup data control "
@@ -73,13 +76,6 @@ class Test_group():
                     agent="agent"+str(i)
                     self.get_action(agent,env)
 
-                    if k+1>env.run_steps-10 and j+1==env.hour_max:
-                        names=names=self.agents[agent]["name"]
-                        for now in range(len(names)):
-                            policy=names[now]+"Policy"
-                            self.agents[agent][policy].save_model()
-                    # if j+1==24:
-                    #     print(" steps",k,"  agent ",agent," reward ",reward)
                 if env.done:
                     print("group_episodes",k,"terminated at",j)
                     break
@@ -140,7 +136,7 @@ class Test_group():
         data.append(list(self.storage_data_set(hour,names)/1000))
         #avg_grid and time
         data.append(list(self.get_data_copy(len(names),self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)))
-        data.append(list(self.get_data_copy(len(names),(env.hour))))
+        data.append(list(self.get_data_copy(len(names),(env.hour+1/24))))
         data=list(itertools.chain(*data))
         data=np.reshape(data,[5,-1])
         data[np.isnan(data)] = 0
@@ -162,7 +158,7 @@ class Test_group():
         data.append(list(self.storage_data_set(hour,names)/1000))
         #avg_grid and time
         data.append(list(self.get_data_copy(len(names),self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)))
-        data.append(list(self.get_data_copy(len(names),(env.hour))))
+        data.append(list(self.get_data_copy(len(names),(env.hour+1/24))))
         data=list(itertools.chain(*data))
         data=np.reshape(data,[5,-1])
         data[np.isnan(data)] = 0
@@ -185,14 +181,15 @@ class Test_group():
             if index[0]==0:
                 grid_now=grid_total
             else:
-                t_grid_sell=self.grid_sell_call(names[now-1],env.hour)
+                t_grid_sell=self.grid_sell_call(names[now-1],env.hour)/1000
                 grid_now=grid_now - t_grid_sell
             use_data.append(sum(demand_add[now:]))
             use_data.append(grid_now)
             use_idata=list(data[:,now])
             used_data=use_data+use_idata
             used_data=np.reshape(used_data,[1,7])
-            action=self.agents[agent][policy].choose_action(used_data)
+            state=copy.copy(used_data)
+            action=self.agents[agent][policy].choose_action(state)
             self.implement_action(names[now],env,action)
             next_data=self.set_next_put(agent,env)
             use_indata=list(next_data[:,now])
@@ -386,7 +383,7 @@ class Test_group():
         """get data and return data  """
         
         action=self.actions[action]
-        # print("action",action)
+        #print("action",action)
         # print("storage_max,storage_min,soc,pv,load,action,hour",storage_max,storage_min,soc,pv,load,action,hour)
         grid_buy =0
         grid_sell=0

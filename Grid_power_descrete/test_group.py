@@ -3,6 +3,7 @@ import numpy as np
 import itertools
 import time
 import random
+import copy
 from environments import Environment
 from DQN.qlearn0 import Policy
 import matplotlib.pyplot as plt
@@ -178,14 +179,15 @@ class Test_group():
             if index[0]==0:
                 grid_now=grid_total
             else:
-                t_grid_sell=self.grid_sell_call(names[now-1],env.hour)
+                t_grid_sell=self.grid_sell_call(names[now-1],env.hour)/1000
                 grid_now=grid_now - t_grid_sell
             use_data.append(sum(demand_add[now:]))
             use_data.append(grid_now)
             use_idata=list(data[:,now])
             used_data=use_data+use_idata
             used_data=np.reshape(used_data,[1,7])
-            action=self.agents[agent][policy].choose_action(used_data)
+            state=copy.copy(used_data)
+            action=self.agents[agent][policy].choose_action(state)
             self.implement_action(names[now],env,action)
             next_data=self.set_next_put(agent,env)
             use_indata=list(next_data[:,now])
@@ -380,7 +382,7 @@ class Test_group():
         """get data and return data  """
 
         action=self.actions[action]
-        # print("this is action",action)
+        print("this is action",action)
         # print("storage_max,storage_min,soc,pv,load,action,hour",storage_max,storage_min,soc,pv,load,action,hour)
         grid_buy =0
         grid_sell=0
