@@ -258,7 +258,6 @@ class Learn_set():
         group member [name]
         return specific time step all pv data
         """
-
         Hour = "Hour-"+str(hour)
         load_sell=self.net.res_ext_grid_2ld.loc[name][Hour]
         st_sell=self.net.res_ext_grid_2st.loc[name][Hour]
