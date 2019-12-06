@@ -10,7 +10,7 @@ import tensorflow as tf
 
 
 class DQNAgent:
-    def __init__(self, state_size, action_size):
+    def __init__(self, state_size, action_size,test=False):
         self.state_size = state_size
         self.action_size = action_size
         self.memory = deque(maxlen=2000)
@@ -19,9 +19,11 @@ class DQNAgent:
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.99
         self.learning_rate = 0.001
+        self.test=test
         self.model = self._build_model()
         self.target_model = self._build_model()
         self.update_target_model()
+        self.pre_memo= deque(maxlen=24)
 
     def _huber_loss(self, y_true, y_pred, clip_delta=1.0):
         error = y_true - y_pred
@@ -48,9 +50,12 @@ class DQNAgent:
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
+    
+    def memo(self,state, action, reward, next_state, done):
+        self.pre_memo.append((state, action, reward, next_state, done))
 
     def act(self, state):
-        if np.random.rand() <= self.epsilon:
+        if np.random.rand() <= self.epsilon and not self.test:
             return random.randrange(self.action_size)
         act_values = self.model.predict(state)
         return np.argmax(act_values[0])  # returns action
@@ -90,8 +95,13 @@ class Policy:
         self.action = self.agent.act(state)
         return self.action
 
-    def learn_act(self,state,reward,next_state,done):
-        self.agent.remember(state,self.action,reward,next_state,done)
+    def learn_act(self,state,reward,next_state,done,g_reward):
+        self.agent.memo(state,self.action,reward,next_state,done)
+        if done:
+            for state, action, reward, next_state, done in self.agent.pre_memo:
+                rewards=reward+g_reward
+                self.agent.remember(state,self.action,rewards,next_state,done)
+            self.agent.pre_memo=deque(maxlen=24)
         self.agent.replay(self.batch_size)
 
         
