@@ -35,7 +35,7 @@ class Policy(object):
     def _build_net(self):
         # ------------------ all inputs ------------------------
         self.s = tf.placeholder(tf.float32, [None, self.n_features], name='s')  # input State
-        self.s1 = tf.placeholder(tf.float32, [None, 7], name='s1')
+        self.s1 = tf.placeholder(tf.float32, [None, self.n_features], name='s1')
         self.s_ = tf.placeholder(tf.float32, [None, self.n_features], name='s_')  # input Next State
         self.r = tf.placeholder(tf.float32, [None, ], name='r')  # input Reward
         self.a = tf.placeholder(tf.int32, [None, ], name='a')  # input Action
@@ -130,11 +130,11 @@ class Policy(object):
             _, cost = self.sess.run(
                 [self._train_op, self.loss],
                 feed_dict={
-                    self.s: batch_memory[:, 0:7],
-                    self.s1:batch_memory[:, 16:23],
-                    self.a: batch_memory[:, 7],
-                    self.r: batch_memory[:, 8],
-                    self.s_: batch_memory[:, 9:16],
+                    self.s: batch_memory[:, 0:self.n_features],
+                    self.s1:batch_memory[:, self.n_features*2+2::],
+                    self.a: batch_memory[:, self.n_features],
+                    self.r: batch_memory[:, self.n_features+1],
+                    self.s_: batch_memory[:, self.n_features+2:self.n_features*2+2],
                 })
             self.cost_his.append(cost)
             if self.epsilon > self.epsilon_min :
