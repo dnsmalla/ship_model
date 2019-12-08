@@ -7,8 +7,9 @@ import time
 import random
 import copy
 from environments import Environment
-from DQN.qlearn0 import Policy
+from DQN.q_single_target import Policy
 import matplotlib.pyplot as plt
+from buffer import Memory
 
 class Test_group_q0():
     """to set up the learning models and network environment"""
@@ -21,6 +22,7 @@ class Test_group_q0():
             call data_setup for getting data for learning
         """
         self.net=net
+        self.memory_size=20000
         self.total_groups=len([names for names in group])
         self.total_agents=len([name for names in group for name in names])
         self.all_names=[name for names in group for name in names]
@@ -38,8 +40,9 @@ class Test_group_q0():
             self.agents[name]["group_name"]=g_name
             self.agents[name]["name"]=group[l]
             self.agents[name]["grid"]=0
-            input_len=7
+            input_len=len(group[l])*4+2
             action_len=2
+            self.agents[name]["memory"]=Memory(self.memory_size,input_len*3+2)
             for gm in range(len(group[l])):
                 policy=group[l][gm]+"Policy"
                 self.agents[name][policy]=Policy(input_len,action_len,group[l][gm],test=False)
@@ -134,12 +137,9 @@ class Test_group_q0():
         names=self.agents[agent]["name"]
         data.append(list(self.pv_data_set(hour,names)/1000))
         data.append(list(self.load_data_set(hour,names)/1000))
-        data.append(list(self.storage_data_set(hour,names)/1000))
-        #avg_grid and time
-        data.append(list(self.get_data_copy(len(names),self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)))
-        data.append(list(self.get_data_copy(len(names),(env.hour))))
+        data.append(list(self.storage_data_set(hour,names)*2/100))
         data=list(itertools.chain(*data))
-        data=np.reshape(data,[5,-1])
+        data=np.reshape(data,[3,-1])
         data[np.isnan(data)] = 0
         return data
 
@@ -156,14 +156,12 @@ class Test_group_q0():
         names=self.agents[agent]["name"]
         data.append(list(self.pv_data_set(hour,names)/1000))
         data.append(list(self.load_data_set(hour,names)/1000))
-        data.append(list(self.storage_data_set(hour,names)/1000))
-        #avg_grid and time
-        data.append(list(self.get_data_copy(len(names),self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)))
-        data.append(list(self.get_data_copy(len(names),(env.hour))))
+        data.append(list(self.storage_data_set(hour,names)*2/100))
         data=list(itertools.chain(*data))
-        data=np.reshape(data,[5,-1])
+        data=np.reshape(data,[3,-1])
         data[np.isnan(data)] = 0
         return data
+
 
     def get_action(self,agent,env):
         """implement the data to get the action
@@ -172,32 +170,37 @@ class Test_group_q0():
         data=self.set_input(agent,env)
         names=self.agents[agent]["name"]
         grid_now=0
+        actions=list(np.zeros(len(names)))
+        memory=self.agents[agent]["memory"]
         for index, name in np.ndenumerate(names):
             use_data=[]
             now=index[0]
             policy=names[now]+"Policy"
             demand_add=data[1]
-            grid_total=data[3,1]
+            grid_total=self.net.res_ext_grid.loc['Grid'][env.hour]/self.total_groups/1000
             if index[0]==0:
                 grid_now=grid_total
             else:
                 t_grid_sell=self.grid_sell_call(names[now-1],env.hour)/1000
-                grid_now=grid_now - t_grid_sell
-            use_data.append(sum(demand_add[now:]))
-            use_data.append(grid_now)
-            use_idata=list(data[:,now])
-            used_data=use_data+use_idata
-            used_data=np.reshape(used_data,[1,7])
+                grid_now=grid_now - t_grid_sell #grid availabel grid now -last agent use
+            use_data.append(sum(demand_add[now:])) #semand sum
+            use_data.append(grid_now) #grid availabel grid now -last agent use
+            use_idata=list(data.flatten()) # all agent data
+            used_data=use_data+use_idata+actions
+            used_data=np.reshape(used_data,[1,len(used_data)])
             state=copy.copy(used_data)
-            action=self.agents[agent][policy].choose_action(state)
+            action=self.agents[agent][policy].choose_action(used_data)
             self.implement_action(names[now],env,action)
-            next_data=self.set_next_put(agent,env)
-            use_indata=list(next_data[:,now])
-            n_state=use_data+use_indata
-            n_state=np.reshape(n_state,[1,7])
+            now_action=-len(names)+index[0]
+            actions[now_action]=action
+            ndata=self.set_next_put(agent,env)
+            use_ndata=list(ndata.flatten())
+            n_state=use_data+use_ndata+actions
+            n_state=np.reshape(n_state,[1,len(n_state)])
+            next_state=copy.copy(n_state)
             reward=self.cal_ireward(agent,names[now],env)
             g_reward=self.cal_greward(env,names)
-            self.agents[agent][policy].learn_act(used_data,reward,n_state,env.done,g_reward)
+            self.agents[agent][policy].learn_act(used_data,reward,next_state,env.done,g_reward,memory)
 
     def get_data_copy(self,leng,data):
         """to return the data as per length """
@@ -221,12 +224,11 @@ class Test_group_q0():
         """to return the reward"""
         #for individual reward
         hour=env.hour
-        usable_grid=self.net.res_ext_grid.loc['Grid'][hour]/len(name)
+        usable_grid=self.net.res_ext_grid.loc['Grid'][hour]/self.total_groups
         used_grid=self.grid_sell_all_call(hour,name)
-        print("used_grid,usable",hour,name,used_grid,usable_grid)
         if used_grid > usable_grid:
             env.done=True
-            g_reward=-1
+            g_reward=-10
         else:
             g_reward=0.1
         return g_reward
@@ -384,7 +386,6 @@ class Test_group_q0():
         """get data and return data  """
 
         action=self.actions[action]
-        print("this is action",action)
         # print("storage_max,storage_min,soc,pv,load,action,hour",storage_max,storage_min,soc,pv,load,action,hour)
         grid_buy =0
         grid_sell=0

@@ -13,9 +13,9 @@ class Policy(object):
         self.test=test
         self.gamma = 0.95    # discount rate
         self.epsilon = 1  # exploration rate
-        self.epsilon_min = 0.05
+        self.epsilon_min = 0.01
         self.epsilon_decay = 0.99998
-        self.lr = 0.00001
+        self.lr = 0.0001
         self.batch=98
         self.output_graph=False
         self.learn_step_counter=0
@@ -40,11 +40,11 @@ class Policy(object):
         self.r = tf.placeholder(tf.float32, [None, ], name='r')  # input Reward
         self.a = tf.placeholder(tf.int32, [None, ], name='a')  # input Action
 
-        w_initializer, b_initializer = tf.random_normal_initializer(0, 0.1), tf.constant_initializer(0.01)
+        w_initializer, b_initializer = tf.random_normal_initializer(0, 0.1), tf.constant_initializer(1)
 
         # ------------------ build evaluate_net ------------------
         with tf.variable_scope('eval_net'):
-            e1 = tf.layers.dense(self.s, 30,  kernel_initializer=w_initializer,
+            e1 = tf.layers.dense(self.s, 50,  kernel_initializer=w_initializer,
                                  bias_initializer=b_initializer, name='e1')
             # tf.layers.dropout(e1,rate=0.25,noise_shape=None,seed=None,training=False,name=None)
             self.q_el = tf.layers.dense(e1, 20, kernel_initializer=w_initializer,
@@ -60,7 +60,7 @@ class Policy(object):
 
         # ------------------ build target_net ------------------
         with tf.variable_scope('target_net'):
-            t1 = tf.layers.dense(self.s_, 30,  kernel_initializer=w_initializer,
+            t1 = tf.layers.dense(self.s_, 50,  kernel_initializer=w_initializer,
                                  bias_initializer=b_initializer, name='t1')
             self.t_el = tf.layers.dense(t1,20, kernel_initializer=w_initializer,
                                           bias_initializer=b_initializer, name='t2')
@@ -82,7 +82,7 @@ class Policy(object):
             self.q_eval_wrt_a = tf.gather_nd(params=self.q_eval, indices=a_indices)    # shape=(None, )
         with tf.variable_scope('loss'):
             self.loss = tf.reduce_mean(tf.squared_difference(self.q_target, self.q_eval_wrt_a, name='TD_error'))
-            #self.loss = tf.clip_by_value(self.loss, -10, 10)
+            self.loss = tf.clip_by_value(self.loss, -10, 10)
         with tf.variable_scope('train'):
             self._train_op = tf.train.AdamOptimizer(self.lr).minimize(self.loss)
 
@@ -90,15 +90,13 @@ class Policy(object):
         act_obs=observation[0]
         if act_obs[0] > act_obs[1]:
             act_obs[0] = -1
-        if act_obs[0] == 0:
-            act_obs[0] = -10
-        if act_obs[1]<=1000 :
+        if act_obs[1]<=1 :
             act_obs[1] = -1
         if act_obs[0] < 0 :
             act_obs[2] = -1
         act_obs=[act_obs]
         self.action=None
-        if np.random.rand()>= self.epsilon or not self.test :
+        if np.random.rand()>= self.epsilon and not self.test :
             actions_value = self.sess.run(self.q_eval, feed_dict={self.s: observation,self.s1:act_obs})
             action = np.argmax(actions_value)
         else:
@@ -107,23 +105,21 @@ class Policy(object):
         return self.action
 
     def learn_act(self,observation,reward,next_state,done,global_reward, Memory):
+        re=reward+global_reward
         act_obs=observation[0]
         if act_obs[0] > act_obs[1]:
             act_obs[0] = -1
-        if act_obs[0] == 0:
-            act_obs[0] = -10
-        if act_obs[1]<=1000 :
+        if act_obs[1]<=1 :
             act_obs[1] = -1
         if act_obs[0] < 0 :
             act_obs[2] = -1
         act_obs=[act_obs]
-        Memory.pre_store(observation[0],reward,self.action,next_state[0],act_obs[0])
+        Memory.pre_store(observation[0],re,self.action,next_state[0],act_obs[0])
         if done :
             pre_memory=Memory.memo
             Memory.memo=deque(maxlen=96)
-            for state,re,action,next_state,mask in pre_memory:
-                rewards=re+global_reward
-                Memory.store(state,action,rewards,next_state,mask)
+            for state,rew,action,next_state,mask in pre_memory:
+                Memory.store(state,action,rew,next_state,mask)
 
         if self.batch<Memory.t_memory:
             batch_memory=Memory.sample(self.batch)
@@ -146,7 +142,6 @@ class Policy(object):
 
     def save_model(self):
         name = self.name
-        print(name)
         path = "./GDqn_model_save/" + name
         if not os.path.exists(path):
             os.makedirs(path)
@@ -157,5 +152,5 @@ class Policy(object):
 
     def test_model(self):
         name = self.name
-        path = "./GDqn_model_save/"
-        self.saver.restore(self.sess, path + name + "/model.ckpt")
+        path = "./GDqn_model_save/" + name
+        self.saver.restore(self.sess, path + "/model.ckpt")

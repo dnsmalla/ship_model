@@ -53,7 +53,7 @@ class Learn_set():
         """
         start=time.time()
         env.train = True
-        env.run_steps =2000
+        env.run_steps =10000
         env.hour_max = 24
         for k in range(env.run_steps):
             env.step=k
@@ -107,7 +107,7 @@ class Learn_set():
         names=self.agents[agent]["name"]
         data.append(list(self.pv_data_set(hour,names)/1000))
         data.append(list(self.load_data_set(hour,names)/1000))
-        data.append(list(self.storage_data_set(hour,names)/1000))
+        data.append(list(self.storage_data_set(hour,names)*2/100))
         data=list(itertools.chain(*data))
         data=np.reshape(data,[3,-1])
         data[np.isnan(data)] = 0
@@ -126,7 +126,7 @@ class Learn_set():
         names=self.agents[agent]["name"]
         data.append(list(self.pv_data_set(hour,names)/1000))
         data.append(list(self.load_data_set(hour,names)/1000))
-        data.append(list(self.storage_data_set(hour,names)/1000))
+        data.append(list(self.storage_data_set(hour,names)*2/100))
         data=list(itertools.chain(*data))
         data=np.reshape(data,[3,-1])
         data[np.isnan(data)] = 0
@@ -162,7 +162,9 @@ class Learn_set():
             self.implement_action(names[now],env,action)
             now_action=-len(names)+index[0]
             actions[now_action]=action
-            n_state=use_data+use_idata+actions
+            ndata=self.set_next_put(agent,env)
+            use_ndata=list(ndata.flatten())
+            n_state=use_data+use_ndata+actions
             n_state=np.reshape(n_state,[1,len(n_state)])
             next_state=copy.copy(n_state)
             reward=self.cal_ireward(agent,names[now],env)
@@ -183,7 +185,7 @@ class Learn_set():
         if used_igrid>usable_igrid:
             ireward=-(used_igrid)/(usable_igrid+1)
         else:
-            ireward=0.1
+            ireward=1
 
         return ireward
 
@@ -195,7 +197,7 @@ class Learn_set():
         used_grid=self.grid_sell_all_call(hour,name)
         if used_grid > usable_grid:
             env.done=True
-            g_reward=-1
+            g_reward=-10
         else:
             g_reward=0.1
         return g_reward
