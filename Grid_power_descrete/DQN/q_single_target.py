@@ -40,7 +40,7 @@ class Policy(object):
         self.r = tf.placeholder(tf.float32, [None, ], name='r')  # input Reward
         self.a = tf.placeholder(tf.int32, [None, ], name='a')  # input Action
 
-        w_initializer, b_initializer = tf.random_normal_initializer(0, 0.1), tf.constant_initializer(1)
+        w_initializer, b_initializer = tf.random_normal_initializer(-0.1, 0.1), tf.constant_initializer(0)
 
         # ------------------ build evaluate_net ------------------
         with tf.variable_scope('eval_net'):
@@ -53,7 +53,7 @@ class Policy(object):
                                           bias_initializer=b_initializer, name='e3')
             self.q_gat_1=tf.layers.dense(self.q_gat, 10,tf.nn.tanh, kernel_initializer=w_initializer,
                                           bias_initializer=b_initializer, name='e4')
-            self.q_evl=tf.layers.dense(tf.concat([self.q_el, self.q_gat_1], axis=1),5,kernel_initializer=w_initializer,
+            self.q_evl=tf.layers.dense(tf.concat([self.q_el, self.q_gat_1], axis=1),10,kernel_initializer=w_initializer,
                                           bias_initializer=b_initializer, name='e6')
             self.q_eval=tf.layers.dense(self.q_evl,self.n_actions,tf.nn.softmax,
                                         kernel_initializer=w_initializer,bias_initializer=b_initializer, name='e7')
@@ -68,7 +68,7 @@ class Policy(object):
                                           bias_initializer=b_initializer, name='t3')
             self.t_gat_1=tf.layers.dense(self.t_gat, 10,tf.nn.tanh, kernel_initializer=w_initializer,
                                           bias_initializer=b_initializer, name='t4')
-            self.q_ne=tf.layers.dense(tf.concat([self.t_el, self.t_gat_1], axis=1),5,kernel_initializer=w_initializer,
+            self.q_ne=tf.layers.dense(tf.concat([self.t_el, self.t_gat_1], axis=1),10,kernel_initializer=w_initializer,
                                           bias_initializer=b_initializer, name='t6')
             self.q_next=tf.layers.dense(self.q_ne,self.n_actions,tf.nn.softmax,
                                             kernel_initializer=w_initializer,bias_initializer=b_initializer, name='t7')
@@ -88,12 +88,12 @@ class Policy(object):
 
     def choose_action(self, observation):
         act_obs=observation[0]
-        if act_obs[0] > act_obs[1]:
-            act_obs[0] = -1
-        if act_obs[1]<=1 :
-            act_obs[1] = -1
-        if act_obs[0] < 0 :
-            act_obs[2] = -1
+        # if act_obs[2] ==0:
+        #     act_obs[2] = -10
+        # if act_obs[10]<=20 :
+        #     act_obs[10] = -10
+        # if act_obs[6] >1 :
+        #     act_obs[6] = 10
         act_obs=[act_obs]
         self.action=None
         if np.random.rand()>= self.epsilon and not self.test :
@@ -107,12 +107,12 @@ class Policy(object):
     def learn_act(self,observation,reward,next_state,done,global_reward, Memory):
         re=reward+global_reward
         act_obs=observation[0]
-        if act_obs[0] > act_obs[1]:
-            act_obs[0] = -1
-        if act_obs[1]<=1 :
-            act_obs[1] = -1
-        if act_obs[0] < 0 :
-            act_obs[2] = -1
+        # if act_obs[2] ==0:
+        #     act_obs[2] = -10
+        # if act_obs[10]<=20 :
+        #     act_obs[10] = -10
+        # if act_obs[6] > 1 :
+        #     act_obs[6] = 10
         act_obs=[act_obs]
         Memory.pre_store(observation[0],re,self.action,next_state[0],act_obs[0])
         if done :

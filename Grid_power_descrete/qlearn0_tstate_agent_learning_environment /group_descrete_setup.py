@@ -185,7 +185,7 @@ class Learn_set():
         if used_igrid>usable_igrid:
             ireward=-(used_igrid)/(usable_igrid+1)
         else:
-            ireward=1
+            ireward=(used_igrid)/(usable_igrid+1)
 
         return ireward
 
