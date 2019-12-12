@@ -1,5 +1,5 @@
 import sys
-sys.path.append('../')
+sys.path.append('./')
 import pandas as pd
 import numpy as np
 import itertools
@@ -54,7 +54,7 @@ class Learn_set():
         """
         start=time.time()
         env.train = True
-        env.run_steps =2000
+        env.run_steps =100
         env.hour_max = 24
         for k in range(env.run_steps):
             env.step=k
@@ -75,14 +75,13 @@ class Learn_set():
                         for now in range(len(names)):
                             policy=names[now]+"Policy"
                             self.agents[agent][policy].save_model()
-                
                 self.terminal_trig(env)
                 if env.done:
                     print("tn_1_group_episodes",k,"terminated at",j)
                     break
             self.reward[str(k)]=j
             self.reset(self.net)
-            now=time.time()
+            #now=time.time()
             #print("time taken",now-start)
         self.save_dict_to_file(self.reward)
 

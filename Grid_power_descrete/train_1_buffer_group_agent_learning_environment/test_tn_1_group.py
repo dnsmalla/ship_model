@@ -88,28 +88,40 @@ class Test_group():
         for i in range(len(self.agents)):
             agent="agent"+str(i) 
             names=self.agents[agent]["name"]
-            datas=self.net.res_storage_N_SOC.loc[names][:]
+            soc_datas=self.net.res_storage_N_SOC.loc[names][:]
             load_data=(sum(list(self.net.res_load_data.loc[names][:].values)))
             pv_data=(sum(list(self.net.res_pv_production.loc[names][:].values)))
             grid_available=self.net.res_ext_grid.loc['Grid'][:]/self.total_groups
+            grid_total_buy=sum(list(self.net.res_ext_grid_buy.loc[names][:].values))
+            grid_total_sell=sum(list(self.net.res_ext_grid_2ld.loc[names][:].values)) + sum(list(self.net.res_ext_grid_2st.loc[names][:].values))
             if sow:
-                plt.plot(datas.T)
+                plt.plot(soc_datas.T,label='agent')
+                plt.legend()
+                plt.title(agent)
                 plt.show()
-                plt.plot(load_data)
+                plt.plot(load_data,label='total_load_data')
                 plt.plot(pv_data)
-                plt.plot(grid_available.T)
+                plt.plot(grid_available.T,label='grid_available')
+                plt.plot(grid_total_sell,label='totla sold by grid')
+                plt.plot(grid_total_buy,label='grid total buy')
+                plt.legend()
+                plt.title(agent)
                 plt.show()
             else:
                 plt.plot(datas.T)
                 plt.title(agent)
                 plt.savefig("plot_result/"+agent + '.png')
-                
+        grid_total_buy=sum(list(self.net.res_ext_grid_buy.loc[self.all_names][:].values))
+        grid_total_sell=sum(list(self.net.res_ext_grid_2ld.loc[self.all_names][:].values)) + sum(list(self.net.res_ext_grid_2st.loc[self.all_names][:].values))        
         all_load_data=(sum(list(self.net.res_load_data.loc[self.all_names][:].values)))
         all_pv_data=(sum(list(self.net.res_pv_production.loc[self.all_names][:].values)))
         all_grid_available=self.net.res_ext_grid.loc['Grid'][:]
         plt.plot(all_load_data)
         plt.plot(all_pv_data)
+        plt.plot(grid_total_buy)
+        plt.plot(grid_total_sell)
         plt.plot(all_grid_available.T)
+        plt.title("total pv demand and power used form Grid")
         plt.show()
 
     def save_dict_to_file(self,dic):
@@ -199,7 +211,6 @@ class Test_group():
             n_state=np.reshape(n_state,[1,7])
             reward=self.cal_ireward(agent,names[now],env)
             g_reward=self.cal_greward(env,names)
-            print(used_data,reward,n_state,env.done,g_reward)
             self.agents[agent][policy].learn_act(used_data,reward,n_state,env.done,g_reward,memory)
 
     def get_data_copy(self,leng,data):
@@ -395,7 +406,7 @@ class Test_group():
         """get data and return data  """
         
         action=self.actions[action]
-        #print("action",action)
+        print("action",action)
         # print("storage_max,storage_min,soc,pv,load,action,hour",storage_max,storage_min,soc,pv,load,action,hour)
         grid_buy =0
         grid_sell=0
