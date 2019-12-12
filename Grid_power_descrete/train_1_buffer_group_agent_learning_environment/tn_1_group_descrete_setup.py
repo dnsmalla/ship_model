@@ -326,7 +326,7 @@ class Learn_set():
         """to set the result to pv_res which set data to pv to load and load charge """
         Hour="Hour-"+str(env.hour)
         self.net.res_pv_2sell.at[name,Hour]=data
-        self.net.res_ext_grid_buy_from.at[name,Hour]=data
+        self.net.res_ext_grid_buy.at[name,Hour]=data
 
     def set_res_ext_grid_2ld(self,env, data,name):
         """to set the result to pv_res which set data to pv to load and load charge """
@@ -488,8 +488,8 @@ class Learn_set():
         # print("st_4pv",st_4pv)
         # print("load_4grid",load_4grid)
         return  grid_buy_from,grid_sell,pv_2sell,pv_2st,pv_2ld,st_2ld,st_4grid,st_4pv,load_4grid
-
-     def balance_new(self,storage_max,storage_min,soc,pv,load,action,hour,dt=1):
+    
+    def balance_new(self,storage_max,storage_min,soc,pv,load,action,hour,dt=1):
         """get data and return data  """
         
         action=self.actions[action]

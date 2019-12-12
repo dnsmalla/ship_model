@@ -59,7 +59,7 @@ class Excel(object):
 
 class Load_gen(object):
 
-    def __init__(self,low_w=1000,high_w=1300,dt_time=24):
+    def __init__(self,low_w=500,high_w=1300,dt_time=24):
         """ low_w is lower point of load power
             high_w is maximum point of load power
             dt_time is discretization of 24hour in to that form
@@ -187,7 +187,7 @@ class Storage_gen(object):
 
 class Grid_gen(object):
 
-    def __init__(self,pw_type=3,low_w=18000,high_w=20000,dt_time=24):
+    def __init__(self,pw_type=3,low_w=10000,high_w=12000,dt_time=24):
         """ low_w is lower point of load power
             high_w is maximum point of load power
             dt_time is discretization of 24hour in to that form
@@ -209,11 +209,11 @@ class Grid_gen(object):
         data=np.random.randint(self.low_w,self.high_w,size=self.pw_type)
         data.sort()
         datas=[]
-        datas=[20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,]
-        # for i in range(self.pw_type):
-        #     re_data=list([data[i]]*(self.dt_time//self.pw_type))
-        #     for j in range(len(re_data)):
-        #         datas.append(re_data[j])
+#         datas=[20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,]
+        for i in range(self.pw_type):
+            re_data=list([data[i]]*(self.dt_time//self.pw_type))
+            for j in range(len(re_data)):
+                datas.append(re_data[j])
         return datas
 
     def _datas(self,cols):
