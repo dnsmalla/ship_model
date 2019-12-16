@@ -7,7 +7,7 @@ import time
 import random
 import copy
 from environments import Environment
-from DQN.q_single_target import Policy
+from DQN.qlearn0 import Policy
 import matplotlib.pyplot as plt
 from buffer import Memory
 
@@ -22,7 +22,6 @@ class Test_group_q0():
             call data_setup for getting data for learning
         """
         self.net=net
-        self.memory_size=20000
         self.total_groups=len([names for names in group])
         self.total_agents=len([name for names in group for name in names])
         self.all_names=[name for names in group for name in names]
@@ -42,7 +41,6 @@ class Test_group_q0():
             self.agents[name]["grid"]=0
             input_len=len(group[l])*4+2
             action_len=2
-            self.agents[name]["memory"]=Memory(self.memory_size,input_len*3+2)
             for gm in range(len(group[l])):
                 policy=group[l][gm]+"Policy"
                 self.agents[name][policy]=Policy(input_len,action_len,group[l][gm],test=False)
@@ -171,7 +169,6 @@ class Test_group_q0():
         names=self.agents[agent]["name"]
         grid_now=0
         actions=list(np.zeros(len(names)))
-        memory=self.agents[agent]["memory"]
         for index, name in np.ndenumerate(names):
             use_data=[]
             now=index[0]
@@ -200,7 +197,7 @@ class Test_group_q0():
             next_state=copy.copy(n_state)
             reward=self.cal_ireward(agent,names[now],env)
             g_reward=self.cal_greward(env,names)
-            self.agents[agent][policy].learn_act(used_data,reward,next_state,env.done,g_reward,memory)
+            self.agents[agent][policy].learn_act(used_data,reward,next_state,env.done,g_reward)
 
     def get_data_copy(self,leng,data):
         """to return the data as per length """

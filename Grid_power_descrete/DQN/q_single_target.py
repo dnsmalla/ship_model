@@ -14,8 +14,8 @@ class Policy(object):
         self.gamma = 0.95    # discount rate
         self.epsilon = 1  # exploration rate
         self.epsilon_min = 0.01
-        self.epsilon_decay = 0.99998
-        self.lr = 0.0001
+        self.epsilon_decay = 0.999
+        self.lr = 0.00001
         self.batch=98
         self.output_graph=False
         self.learn_step_counter=0
@@ -88,12 +88,12 @@ class Policy(object):
 
     def choose_action(self, observation):
         act_obs=observation[0]
-        if act_obs[2] ==0:
-            act_obs[2] = -10
-        if act_obs[6]<=20 :
-            act_obs[6] = -10
-        if act_obs[3] >1 :
-            act_obs[3] = 10
+        # if act_obs[2] ==0:
+        #     act_obs[2] = -10
+        # if act_obs[6]<=20 :
+        #     act_obs[6] = -10
+        # if act_obs[3] >1 :
+        #     act_obs[3] = 10
         act_obs=[act_obs]
         self.action=None
         if np.random.rand()>= self.epsilon and not self.test :
@@ -107,12 +107,12 @@ class Policy(object):
     def learn_act(self,observation,reward,next_state,done,global_reward, Memory):
         re=reward+global_reward
         act_obs=observation[0]
-        if act_obs[2] ==0:
-            act_obs[2] = -10
-        if act_obs[6]<=20 :
-            act_obs[6] = -10
-        if act_obs[3] >1 :
-            act_obs[3] = 10
+        # if act_obs[2] ==0:
+        #     act_obs[2] = -10
+        # if act_obs[6]<=20 :
+        #     act_obs[6] = -10
+        # if act_obs[3] >1 :
+        #     act_obs[3] = 10
         act_obs=[act_obs]
         Memory.pre_store(observation[0],re,self.action,next_state[0],act_obs[0])
         if done :

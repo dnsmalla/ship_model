@@ -59,7 +59,7 @@ class Excel(object):
 
 class Load_gen(object):
 
-    def __init__(self,low_w=300,high_w=1300,dt_time=24):
+    def __init__(self,low_w=300,high_w=1200,dt_time=24):
         """ low_w is lower point of load power
             high_w is maximum point of load power
             dt_time is discretization of 24hour in to that form
@@ -92,7 +92,7 @@ class Load_gen(object):
 
 class PV_gen(object):
 
-    def __init__(self,start_t=5,end_t=18,dt_time=24,max_pv=3000,min_pv=1000):
+    def __init__(self,start_t=6,end_t=18,dt_time=24,max_pv=2000,min_pv=1000):
         """ low_w is min_pv is  minimum  pv production
             max_pv is maximum point of pv production power
             dt_time is discretization of 24hour in to that form
@@ -155,7 +155,7 @@ class PV_gen(object):
 
 class Storage_gen(object):
 
-    def __init__(self,low_w=4000,high_w=5000,dt_time=1):
+    def __init__(self,low_w=4000,high_w=4500,dt_time=1):
         """ low_w is lower point of load power
             high_w is maximum point of load power
             dt_time is discretization of 24hour in to that form
@@ -215,6 +215,55 @@ class Grid_gen(object):
             for j in range(len(re_data)):
                 datas.append(re_data[j])
         return datas
+
+    def _datas(self,cols):
+        grid_cols=[]
+        for col in range(len(cols)):
+            if len(grid_cols)==0:
+                grid_data=self._data(cols[col])
+                grid_cols.append(grid_data.columns[0])
+            else:
+                grid_datas=self._data(cols[col])
+                if grid_datas.columns[0] not in grid_cols:
+                    grid_cols.append(grid_datas.columns[0])
+                    grid_data=grid_data.join(grid_datas)
+
+        return grid_data
+
+class Grid_gen_2h(object):
+
+    def __init__(self,pw_type=3,low_w=10000,high_w=12000,dt_time=24):
+        """ low_w is lower point of load power
+            high_w is maximum point of load power
+            dt_time is discretization of 24hour in to that form
+        """
+        self.low_w=low_w
+        self.pw_type=pw_type
+        self.high_w=high_w
+        self.dt_time=dt_time
+
+
+    def _data(self,_head):
+        """create data for load"""
+        data={}
+        grid=self._copy_data()
+        data[_head]=grid
+        return pd.DataFrame(data,columns= [_head])
+
+    def _copy_data(self):
+        data=np.random.randint(self.low_w,self.high_w,size=self.pw_type)
+        data.sort()
+        model=[1,1,7/8,7/8,5/8,5/8,4/8,4/8,0,0,0,0,0,0,0,0,4/8,4/8,5/8,5/8,7/8,7/8,1,1]
+        datas=[]
+#         datas=[20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,]
+        for i in range(self.pw_type):
+            re_data=list([data[i]]*(self.dt_time//self.pw_type))
+            for j in range(len(re_data)):
+                datas.append(re_data[j])
+        datas=np.array(datas)
+        model=np.array(model)
+        use_data=datas*model
+        return use_data
 
     def _datas(self,cols):
         grid_cols=[]

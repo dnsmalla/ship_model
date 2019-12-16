@@ -116,12 +116,13 @@ class Test_group():
         all_load_data=(sum(list(self.net.res_load_data.loc[self.all_names][:].values)))
         all_pv_data=(sum(list(self.net.res_pv_production.loc[self.all_names][:].values)))
         all_grid_available=self.net.res_ext_grid.loc['Grid'][:]
-        plt.plot(all_load_data)
-        plt.plot(all_pv_data)
-        plt.plot(grid_total_buy)
-        plt.plot(grid_total_sell)
-        plt.plot(all_grid_available.T)
+        plt.plot(all_load_data,label="total load")
+        plt.plot(all_pv_data,label="pv production")
+        plt.plot(grid_total_buy,label="supply to Grid")
+        plt.plot(grid_total_sell,label="total used form Grid")
+        plt.plot(all_grid_available.T,label="total grid production")
         plt.title("total pv demand and power used form Grid")
+        plt.legend()
         plt.show()
 
     def save_dict_to_file(self,dic):

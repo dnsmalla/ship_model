@@ -2,7 +2,7 @@ import os
 import copy
 import pandas as pd 
 import numpy as np 
-from excel_read_write import Load_gen,PV_gen,Storage_gen,Grid_gen
+from excel_read_write import Load_gen,PV_gen,Storage_gen,Grid_gen,Grid_gen_2h
 data_file='model_data.xlsx'
 
 class Data_intialize():
@@ -41,7 +41,8 @@ class Data_intialize():
             self.net.res_storage_N_SOC["Hour-0"][:]=self.net.res_storage_SOC["Hour-0"]
             # load grid data
             grid_need=list(self.net.ext_grid["name"])
-            grid=Grid_gen()
+            #grid=Grid_gen() # for 3 step data 
+            grid=Grid_gen_2h() # for 2 hour model decreasing data
             grid_data=grid._datas(grid_need)
             self.net.res_ext_grid=grid_data.T
 
