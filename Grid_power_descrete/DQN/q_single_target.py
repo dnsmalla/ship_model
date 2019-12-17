@@ -13,9 +13,9 @@ class Policy(object):
         self.test=test
         self.gamma = 0.95    # discount rate
         self.epsilon = 1  # exploration rate
-        self.epsilon_min = 0.01
+        self.epsilon_min = 0.1
         self.epsilon_decay = 0.999
-        self.lr = 0.00001
+        self.lr = 0.001
         self.batch=98
         self.output_graph=False
         self.learn_step_counter=0
