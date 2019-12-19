@@ -111,7 +111,7 @@ class Learn_set():
         data.append(list(self.storage_data_set(hour,names)/1000))
         #avg_grid and time
         data.append(list(self.get_data_copy(len(names),self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)))
-        data.append(list(self.get_data_copy(len(names),(env.hour))))
+        data.append(list(self.get_data_copy(len(names),(env.hour ))))
         data=list(itertools.chain(*data))
         data=np.reshape(data,[5,-1])
         data[np.isnan(data)] = 0
