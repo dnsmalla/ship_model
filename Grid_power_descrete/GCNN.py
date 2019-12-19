@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import random
+import os
 from graph_cnn_layer import GraphCNN as GraphConv
 import numpy  as np
 import pandas as pd
@@ -9,9 +10,9 @@ from collections import deque
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten, BatchNormalization, GlobalAveragePooling2D
 from keras.optimizers import Adam
-from sklearn.metrics import mean_squared_error
-from sklearn.preprocessing   import normalize
-from sklearn.model_selection import train_test_split
+# from sklearn.metrics import mean_squared_error
+# from sklearn.preprocessing   import normalize
+# from sklearn.model_selection import train_test_split
 
 class Policy():
     def __init__(self,input,output,test=False):
@@ -88,15 +89,10 @@ class Policy():
         return  self.action
 
     def save_model(self):
-        path="./GCNN_model_save/"
-        if not os.path.exists(path):
-            os.makedirs(path)
-        path="./GCNN_model_save/"+self.name
-        self.model.save(path+'weights_GCNN.h5')
+        self.model.save_weights('my_model_weights.h5')
 
     def test_model(self):
-        path="./GCNN_model_save/"+self.name
-        self.agent.load(path+'weights_GCNN.h5')
+        self.model.load_weights('my_model_weights.h5')
 
     def correlation(self,data,num_neighbors):
         corr_mat  = np.array(normalize(np.abs(np.corrcoef(data.transpose())), norm='l1', axis=1),dtype='float64')

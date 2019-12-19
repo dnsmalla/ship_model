@@ -1,6 +1,6 @@
 from tn_1_group_descrete_setup_GCNN import Learn_set
 import sys
-sys.path.append('./')
+sys.path.append('../')
 from  data_control import Data_intialize
 from test_tn_1_group_GCNN import Test_group
 from network import *

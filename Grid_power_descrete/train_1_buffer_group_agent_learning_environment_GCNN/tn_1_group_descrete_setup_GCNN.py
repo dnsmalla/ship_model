@@ -1,6 +1,6 @@
 
 import sys
-sys.path.append('./')
+sys.path.append('../')
 from Gcnn.GCNN import Policy
 import pandas as pd
 import numpy as np
@@ -55,7 +55,7 @@ class Learn_set():
         """
         start=time.time()
         env.train = True
-        env.run_steps =200
+        env.run_steps =2000
         env.hour_max = 24
         for k in range(env.run_steps):
             env.step=k
