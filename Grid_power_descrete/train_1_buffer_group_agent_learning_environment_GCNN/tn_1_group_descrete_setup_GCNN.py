@@ -173,7 +173,7 @@ class Learn_set():
             n_state=np.reshape(n_state,[1,7])
             reward=self.cal_ireward(agent,names[now],env)
             g_reward=self.cal_greward(env,names)
-            self.agents[agent][policy].learn_act(used_data,reward,n_state,env.done,g_reward,memory)
+            self.agents[agent][policy].learn_act(used_data,reward,n_state,env.done,g_reward)
 
 
     def get_data_copy(self,leng,data):
