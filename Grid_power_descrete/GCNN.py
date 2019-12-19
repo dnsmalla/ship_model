@@ -9,23 +9,14 @@ from collections import deque
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten, BatchNormalization, GlobalAveragePooling2D
 from keras.optimizers import Adam
-<<<<<<< HEAD
-# from sklearn.metrics import mean_squared_error
-# from sklearn.preprocessing   import normalize
-# from sklearn.model_selection import train_test_split
-=======
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing   import normalize
 from sklearn.model_selection import train_test_split
->>>>>>> 7b6ec479e0aca6f8fdf3c0ae3c35f57eead069d3
 
 class Policy():
     def __init__(self,input,output,test=False):
         self.test=test
-<<<<<<< HEAD
-=======
         self.name="name"
->>>>>>> 7b6ec479e0aca6f8fdf3c0ae3c35f57eead069d3
         self.input=input
         self.action_size=output
         graph_mat=np.ones(self.input)
@@ -56,10 +47,6 @@ class Policy():
         model.add(Dense(16))
         model.add(Activation('relu'))
         model.add(Dense(self.action_size,activation='softmax'))
-<<<<<<< HEAD
-        # model.summary()
-=======
->>>>>>> 7b6ec479e0aca6f8fdf3c0ae3c35f57eead069d3
         model.compile(loss='mse',
                       optimizer=Adam(lr=self.learning_rate))
         return model
@@ -70,17 +57,6 @@ class Policy():
     def memo(self,state, action, reward, next_state, done):
         self.pre_memo.append((state, action, reward, next_state, done))
 
-<<<<<<< HEAD
-    def learn_act(self,state,reward,next_state,done,global_reward,memory):
-        memory.pre_store(state,self.action,reward,next_state,done)
-        if done:
-            for state, action, reward, next_state, done in memory.memo:
-                rewards=reward+global_reward
-                memory.store(state,self.action,rewards,next_state,done)
-            memory.pre_store=deque(maxlen=200)
-        if memory.t_memory > self.batch_size:
-            minibatch = memory.sample(self.batch_size)
-=======
     def learn_act(self,state,reward,next_state,done,global_reward):
         self.memo(state,self.action,reward,next_state,done)
         if done:
@@ -91,7 +67,6 @@ class Policy():
 
         if len(self.memory) > self.batch_size:
             minibatch = random.sample(self.memory, self.batch_size)
->>>>>>> 7b6ec479e0aca6f8fdf3c0ae3c35f57eead069d3
             for state, action, reward, next_state, done in minibatch:
                 target = reward
                 if not done:
@@ -112,13 +87,6 @@ class Policy():
             self.action=np.argmax(pred_test)
         return  self.action
 
-<<<<<<< HEAD
-    def model_save(self):
-        self.model.save('weights_GCNN.h5')
-
-    def model_load(self):
-        self.model.load_weights('weights_GCNN.h5')
-=======
     def save_model(self):
         path="./GCNN_model_save/"
         if not os.path.exists(path):
@@ -129,7 +97,6 @@ class Policy():
     def test_model(self):
         path="./GCNN_model_save/"+self.name
         self.agent.load(path+'weights_GCNN.h5')
->>>>>>> 7b6ec479e0aca6f8fdf3c0ae3c35f57eead069d3
 
     def correlation(self,data,num_neighbors):
         corr_mat  = np.array(normalize(np.abs(np.corrcoef(data.transpose())), norm='l1', axis=1),dtype='float64')
