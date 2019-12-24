@@ -152,6 +152,10 @@ Net={
                                ('pv_charge', 'f8'),
                                ('grid_charge', 'f8'),
                                ('load_discharge', 'f8')],
+        "_empty_res_mini_charge": [("name", np.dtype(object)),
+                                ('p_w', 'f8'),],
+        "_empty_res_max_charge": [("name", np.dtype(object)),
+                                ('p_w', 'f8'),],
         "_empty_res_load": [("name", np.dtype(object)),
                                 ("time", "f8"),
                                 ('p_w', 'f8'),
@@ -161,11 +165,13 @@ Net={
         "_empty_res_gen": [("time", "f8"),
                            ('produce_p_w', 'f8'),
                            ("balance_p_w", "f8"),
-                           ("use_p_w", "f8")], 
-                           
+                           ("use_p_w", "f8")],                      
         "_empty_res_storage_SOC": [("name", np.dtype(object)),
                                 ("Hour-0", "f8")],
-
+        "_empty_res_can_charge": [("name", np.dtype(object)),
+                                ('p_w', 'f8'),],  
+        "_empty_res_can_discharge": [("name", np.dtype(object)),
+                                ('p_w', 'f8'),],
         "_empty_res_ext_grid": [("name", np.dtype(object)),
                                 ("Hour-0", "f8"),("Hour-1", "f8"),("Hour-2", "f8"),("Hour-3", "f8"),("Hour-4", "f8"),("Hour-5", "f8"),("Hour-6", "f8"),
                                    ("Hour-7", "f8"),("Hour-8", "f8"),("Hour-9", "f8"),("Hour-10", "f8"),("Hour-11", "f8"),("Hour-12", "f8"),("Hour-13", "f8"),
@@ -245,7 +251,8 @@ Net={
                                 ("Hour-0", "f8"),("Hour-1", "f8"),("Hour-2", "f8"),("Hour-3", "f8"),("Hour-4", "f8"),("Hour-5", "f8"),("Hour-6", "f8"),
                                    ("Hour-7", "f8"),("Hour-8", "f8"),("Hour-9", "f8"),("Hour-10", "f8"),("Hour-11", "f8"),("Hour-12", "f8"),("Hour-13", "f8"),
                                     ("Hour-14", "f8"),("Hour-15", "f8"),("Hour-16", "f8"),("Hour-17", "f8"),("Hour-18", "f8"),("Hour-19", "f8"),("Hour-20", "f8"),
-                                    ("Hour-21", "f8"),("Hour-22", "f8"),("Hour-23", "f8"),("Hour-24", "f8")], 
+                                    ("Hour-21", "f8"),("Hour-22", "f8"),("Hour-23", "f8"),("Hour-24", "f8")],
+          
 
         # internal
         "_ppc": None,

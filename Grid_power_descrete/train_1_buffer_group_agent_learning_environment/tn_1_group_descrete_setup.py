@@ -401,6 +401,7 @@ class Learn_set():
 
         if action == 'ON':
             if pv_over > storage_need:
+                #print("1")
                 grid_buy_from=pv_over
                 grid_sell=0
                 pv_2sell =pv_over
@@ -412,6 +413,7 @@ class Learn_set():
                 load_4grid=0
 
             elif (pv_over>0) and (pv_over < storage_need):
+                #print("2")
                 grid_buy_from=0
                 grid_sell=0
                 pv_2sell =0
@@ -423,6 +425,7 @@ class Learn_set():
                 load_4grid=0
 
             elif pv_nfill>0 and storage_dischargeable>pv_nfill:
+                #print("3")
                 grid_buy_from=0
                 grid_sell=0
                 pv_2sell =0
@@ -434,6 +437,7 @@ class Learn_set():
                 load_4grid=0
 
             elif storage_dischargeable>0 and storage_dischargeable<pv_nfill:
+                #print("3")
                 grid_buy_from=0
                 grid_sell=load-storage_dischargeable*dt
                 pv_2sell =0
@@ -444,7 +448,19 @@ class Learn_set():
                 st_4pv   =0
                 load_4grid=load-storage_dischargeable*dt
 
+            elif storage_need==0:
+                #print("4")
+                grid_buy_from=0
+                grid_sell=0
+                pv_2sell =0
+                pv_2st   =0
+                pv_2ld   =pv
+                st_2ld   =load
+                st_4grid =0
+                st_4pv   =0
+                load_4grid=0
             else:
+                #print("5")
                 grid_buy_from=0
                 grid_sell=load-storage_need
                 pv_2sell =0
@@ -454,6 +470,7 @@ class Learn_set():
                 st_4grid =storage_need
                 st_4pv   =0
                 load_4grid=load
+
 
         elif action == 'OFF':
             if pv >load:

@@ -1,8 +1,7 @@
-from tn_1_group_descrete_setup_GCNN import Learn_set
+from mathe_opt_setup import Mathe_set
 import sys
 sys.path.append('./')
 from  data_control import Data_intialize
-from test_tn_1_group_GCNN import Test_group
 from network import *
 from circuit_plot import create_schem
 
@@ -61,9 +60,9 @@ net.create_line(bus12,bus13,length_km=1,direct="left",theta=180)
 net.create_line(bus5,bus14,length_km=1,direct="left",theta=180)
 net.create_line(bus9,bus15,length_km=1,direct="left",theta=180)
 net.create_line(bus15,bus16,length_km=1,direct="left",theta=180)
-#create_schem(net)
+create_schem(net)
 #definde group for learning
-print(net.net)
+#print(net.net)
 group1=[h1,h2,h3,h4]
 group2=[h5,h6,h7,h8]
 group3=[h9,h10,h11,h12]
@@ -71,6 +70,5 @@ group4=[h13,h14,h15,h16]
 
 groups=[group1,group2,group3,group4]
 data=Data_intialize(net.net)
-ls=Learn_set(net.net,groups,Data_intialize)
-ts= Test_group(net.net,groups,Data_intialize)
+ls=Mathe_set(net.net,groups,Data_intialize)
 

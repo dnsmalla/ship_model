@@ -92,7 +92,7 @@ class Load_gen(object):
 
 class PV_gen(object):
 
-    def __init__(self,start_t=6,end_t=18,dt_time=24,max_pv=2000,min_pv=1000):
+    def __init__(self,start_t=6,end_t=18,dt_time=24,max_pv=1500,min_pv=1000):
         """ low_w is min_pv is  minimum  pv production
             max_pv is maximum point of pv production power
             dt_time is discretization of 24hour in to that form
@@ -232,7 +232,7 @@ class Grid_gen(object):
 
 class Grid_gen_2h(object):
 
-    def __init__(self,pw_type=3,low_w=10000,high_w=15000,dt_time=24):
+    def __init__(self,pw_type=3,low_w=30000,high_w=35000,dt_time=24):
         """ low_w is lower point of load power
             high_w is maximum point of load power
             dt_time is discretization of 24hour in to that form
@@ -253,7 +253,8 @@ class Grid_gen_2h(object):
     def _copy_data(self):
         data=np.random.randint(self.low_w,self.high_w,size=self.pw_type)
         data.sort()
-        model=[1,1,7/8,7/8,5/8,5/8,4/8,4/8,1/8,1/8,1/8,1/8,1/8,1/8,1/8,1/8,4/8,4/8,5/8,5/8,7/8,7/8,1,1]
+        model=[1,1,7/8,7/8,5/8,5/8,4/8,4/8,0,0,0,0,0,0,0,0,4/8,4/8,5/8,5/8,7/8,7/8,1,1]
+        #model=[1,1,7/8,7/8,5/8,5/8,4/8,4/8,1/8,1/8,1/8,1/8,1/8,1/8,1/8,1/8,4/8,4/8,5/8,5/8,7/8,7/8,1,1]
         datas=[]
 #         datas=[20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,20000,]
         for i in range(self.pw_type):

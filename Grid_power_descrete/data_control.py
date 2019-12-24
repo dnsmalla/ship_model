@@ -41,10 +41,14 @@ class Data_intialize():
             self.net.res_storage_N_SOC["Hour-0"][:]=self.net.res_storage_SOC["Hour-0"]
             # load grid data
             grid_need=list(self.net.ext_grid["name"])
-            grid=Grid_gen() # for 3 step data 
-            #grid=Grid_gen_2h() # for 2 hour model decreasing data
+            #grid=Grid_gen() # for 3 step data 
+            grid=Grid_gen_2h() # for 2 hour model decreasing data
             grid_data=grid._datas(grid_need)
             self.net.res_ext_grid=grid_data.T
+            self.net.res_mini_charge.at[:,"p_w"]=570
+            self.net.res_max_charge.at[:,"p_w"]=5000
+            self.net.res_can_charge["p_w"][:]=0
+            self.net.res_can_discharge["p_w"][:]=0
 
         else:
             load_datas= pd.read_excel(self.file,'load')
@@ -62,7 +66,8 @@ class Data_intialize():
 
     def get_elements_to_empty(self):
         return ["ext_grid_buy", "ext_grid_2st","ext_grid_2ld","ext_grid_balance","pv_2st","pv_2ld","pv_2sell","storage_charge","storage_discharge",
-                "load","storage","pv_production","load_data","storage_SOC","load_4grid","load_4pv","load_4st","storage_N_SOC"]
+                "load","storage","pv_production","load_data","storage_SOC","load_4grid","load_4pv","load_4st","storage_N_SOC","can_charge",
+                "can_discharge","mini_charge","max_charge"]
 
     def get_elements_to_init(self):
        return ["ext_grid","gen","pv","house","housepv","housepvb"]
@@ -123,6 +128,16 @@ class Data_intialize():
         self.net["res_storage_SOC"]=self.net["res_storage_SOC"].set_index('name')
         self.net["res_storage_N_SOC"]["name"]=self.net["load"]["name"]
         self.net["res_storage_N_SOC"]=self.net["res_storage_N_SOC"].set_index('name')
+        self.net["res_can_charge"]["name"]=self.net["load"]["name"]
+        self.net["res_can_charge"]=self.net["res_can_charge"].set_index('name')
+        self.net["res_can_discharge"]["name"]=self.net["load"]["name"]
+        self.net["res_can_discharge"]=self.net["res_can_discharge"].set_index('name')
+        self.net["res_mini_charge"]["name"]=self.net["load"]["name"]
+        self.net["res_mini_charge"]=self.net["res_mini_charge"].set_index('name')
+        self.net["res_max_charge"]["name"]=self.net["load"]["name"]
+        self.net["res_max_charge"]=self.net["res_max_charge"].set_index('name')
+        
+
 
     def set_ext_grid_res(self):
         self.net["res_ext_grid"]["name"]=self.net["ext_grid"]["name"]

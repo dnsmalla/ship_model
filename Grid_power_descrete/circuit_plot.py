@@ -76,7 +76,7 @@ def plot_data(d,datas):
                 if not name in list(bus.keys()):
                     value=Bus(mem[2])
                     bus[name]=value
-                    now=d.add(e.LINE,d=direct,xy=start,l=2.75,theta=theta)
+                    now=d.add(e.LINE,d=direct,xy=start,l=1.75,theta=theta)
                     bus[name]['start']=now.end
                 else:
                     end=bus[name]['start']

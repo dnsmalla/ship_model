@@ -1,6 +1,6 @@
 
 import sys
-sys.path.append('../')
+sys.path.append('./')
 from Gcnn.GCNN import Policy
 import pandas as pd
 import numpy as np
@@ -26,7 +26,7 @@ class Learn_set():
         self.memory_size=20000
         self.total_groups=len([names for names in group])
         self.total_agents=len([name for names in group for name in names])
-        self.all_names=[name for names in group for name in names]
+        self.all_names=[]
         env=Environment()
         self.actions=["ON","OFF"]
         assert len(self.net.res_pv)==len(self.net.pv),"learning setup need res setup! import and setup data control "
@@ -55,7 +55,7 @@ class Learn_set():
         """
         start=time.time()
         env.train = True
-        env.run_steps =2000
+        env.run_steps =300
         env.hour_max = 24
         for k in range(env.run_steps):
             env.step=k
@@ -67,6 +67,7 @@ class Learn_set():
                     env.next_hour = 0
                 else:
                     env.next_hour = j + 1
+                self.all_names=[]
                 for i in range(len(self.agents)):
                     agent="agent"+str(i)
                     self.get_action(agent,env)
@@ -112,7 +113,7 @@ class Learn_set():
         data.append(list(self.storage_data_set(hour,names)/1000))
         #avg_grid and time
         data.append(list(self.get_data_copy(len(names),self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)))
-        data.append(list(self.get_data_copy(len(names),(env.hour ))))
+        data.append(list(self.get_data_copy(len(names),(env.hour+1)/24)))
         data=list(itertools.chain(*data))
         data=np.reshape(data,[5,-1])
         data[np.isnan(data)] = 0
@@ -134,7 +135,7 @@ class Learn_set():
         data.append(list(self.storage_data_set(hour,names)/1000))
         #avg_grid and time
         data.append(list(self.get_data_copy(len(names),self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents/1000)))
-        data.append(list(self.get_data_copy(len(names),(env.hour))))
+        data.append(list(self.get_data_copy(len(names),(env.hour+1)/24)))
         data=list(itertools.chain(*data))
         data=np.reshape(data,[5,-1])
         data[np.isnan(data)] = 0
@@ -148,7 +149,9 @@ class Learn_set():
         names=self.agents[agent]["name"]
         grid_now=0
         memory=self.agents[agent]["memory"]
+        
         for index, name in np.ndenumerate(names):
+            self.all_names.append(name)
             use_data=[]
             now=index[0]
             policy=names[now]+"Policy"
@@ -188,7 +191,7 @@ class Learn_set():
         usable_igrid=self.net.res_ext_grid.loc['Grid'][hour]/self.total_agents
         used_igrid=self.grid_sell_call(agent,hour)
         if used_igrid>usable_igrid:
-            ireward=-(used_igrid)/(usable_igrid+1)
+            ireward=(usable_igrid-used_igrid)/1000
         else:
             ireward=0.1
 
@@ -201,9 +204,9 @@ class Learn_set():
         usable_grid=self.net.res_ext_grid.loc['Grid'][hour]/len(name)
         used_grid=self.grid_sell_all_call(hour,name)
         if used_grid > usable_grid:
-            g_reward=-1
+            g_reward=(usable_grid-used_grid)/1000
         else:
-            g_reward=0.1
+            g_reward=0
         return g_reward
 
     def terminal_trig(self,env):
@@ -402,6 +405,7 @@ class Learn_set():
 
         if action == 'ON':
             if pv_over > storage_need:
+                #print("1")
                 grid_buy_from=pv_over
                 grid_sell=0
                 pv_2sell =pv_over
@@ -413,6 +417,7 @@ class Learn_set():
                 load_4grid=0
 
             elif (pv_over>0) and (pv_over < storage_need):
+                #print("2")
                 grid_buy_from=0
                 grid_sell=0
                 pv_2sell =0
@@ -424,6 +429,7 @@ class Learn_set():
                 load_4grid=0
 
             elif pv_nfill>0 and storage_dischargeable>pv_nfill:
+                #print("3")
                 grid_buy_from=0
                 grid_sell=0
                 pv_2sell =0
@@ -435,6 +441,7 @@ class Learn_set():
                 load_4grid=0
 
             elif storage_dischargeable>0 and storage_dischargeable<pv_nfill:
+                #print("3")
                 grid_buy_from=0
                 grid_sell=load-storage_dischargeable*dt
                 pv_2sell =0
@@ -445,7 +452,19 @@ class Learn_set():
                 st_4pv   =0
                 load_4grid=load-storage_dischargeable*dt
 
+            elif storage_need==0:
+                #print("4")
+                grid_buy_from=0
+                grid_sell=0
+                pv_2sell =0
+                pv_2st   =0
+                pv_2ld   =pv
+                st_2ld   =load
+                st_4grid =0
+                st_4pv   =0
+                load_4grid=0
             else:
+                #print("5")
                 grid_buy_from=0
                 grid_sell=load-storage_need
                 pv_2sell =0
@@ -455,6 +474,7 @@ class Learn_set():
                 st_4grid =storage_need
                 st_4pv   =0
                 load_4grid=load
+
 
         elif action == 'OFF':
             if pv >load:
